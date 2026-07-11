@@ -203,7 +203,7 @@
   <div class="wrap">
     <header>
       <h1>الورد اليومي</h1>
-      <div class="creator">تم صناعته بواسطة العبد الفقير إلى الله عز وجل: معاذ محمود</div>
+      <div class="creator">صُنِعَ بِوَاسِطَةِ العَبْدِ الفَقِيرِ إِلَى اللَّهِ عَزَّ وَجَلَّ: مُعَاذُ بْنُ مَحْمُودٍ</div>
       <div class="sub">قراءة يومية مرنة — القرآن الكريم كاملًا — المختصر في التفسير — مكتبة إسلامية — بحث وحفظ للتقدم</div>
     </header>
 
@@ -33317,6 +33317,40 @@ function ayahDomId(a){
   return `${a.surahNumber}_${a.numberInSurah}`;
 }
 
+// بعض مصادر النص القرآني قد تُرجع البسملة ملتصقة ببداية الآية الأولى.
+// نحن نعرضها كسطر مستقل أعلى السورة، لذلك نزيل التكرار من نص الآية الأولى فقط.
+// الفاتحة مستثناة لأن البسملة هي الآية الأولى فيها، والتوبة لا بسملة في أولها.
+function stripRepeatedBismillah(text, a){
+  if(!text || a.numberInSurah !== 1 || a.surahNumber === 1 || a.surahNumber === 9) return text;
+
+  let source = String(text).replace(/^\s+/, '');
+  if(source.startsWith('﷽')) return source.slice(1).replace(/^\s+/, '');
+
+  const target = 'بسماللهالرحمنالرحيم';
+  let normalized = '';
+  let endIndex = 0;
+
+  for(const ch of source){
+    endIndex += ch.length;
+
+    // تجاهل علامات التشكيل وعلامات الضبط القرآنية والمسافات أثناء المطابقة فقط.
+    if(/[\u064B-\u065F\u0670\u06D6-\u06ED\s]/u.test(ch)) continue;
+
+    let c = ch
+      .replace(/[إأآٱ]/g, 'ا')
+      .replace(/ى/g, 'ي');
+
+    normalized += c;
+
+    if(normalized === target){
+      return source.slice(endIndex).replace(/^[\u064B-\u065F\u0670\u06D6-\u06ED\s]+/u, '');
+    }
+    if(!target.startsWith(normalized)) break;
+  }
+
+  return source;
+}
+
 function renderAyahList(ayahs){
   let html = '';
   let lastSurah = null;
@@ -33334,7 +33368,7 @@ function renderAyahList(ayahs){
     html += `
       <article class="ayahBlock">
         <div class="ayahMeta">${escapeHTML(a.surahName)} — الآية ${arabicDigits(a.numberInSurah)}</div>
-        <div class="ayahText">${escapeHTML(a.text)} <span class="ayahNumber">﴿${arabicDigits(a.numberInSurah)}﴾</span></div>
+        <div class="ayahText">${escapeHTML(stripRepeatedBismillah(a.text, a))} <span class="ayahNumber">﴿${arabicDigits(a.numberInSurah)}﴾</span></div>
         <div class="ayahTools row">
           <button class="secondary" id="tafsirBtn_${id}" onclick="toggleTafsir(${a.surahNumber},${a.numberInSurah})">عرض المختصر في التفسير</button>
         </div>
