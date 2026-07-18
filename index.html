@@ -6451,6 +6451,295 @@ html.zad-zero-delay-v66 .moduleFade{animation:none!important}
   document.documentElement.classList.add('zad-zero-delay-v66');
 })();
 </script>
+
+
+<!-- ZAD_V67_DESKTOP_COMFORT_START -->
+<style id="zad-v67-desktop-comfort">
+/* v67 — تحسين راحة نسخة الكمبيوتر فقط. لا يغيّر تصميم الموبايل. */
+@media (min-width:900px){
+  html[data-device-mode="desktop"] .wrap{
+    width:calc(100% - 12px)!important;
+    max-width:1780px!important;
+    margin:0 0 0 auto!important;
+    padding:10px 6px 14px 14px!important;
+    grid-template-columns:minmax(0,1fr) 292px!important;
+    gap:26px!important;
+  }
+
+  /* القائمة الجانبية أقرب إلى الحافة اليمنى وأخف بصريًا. */
+  html[data-device-mode="desktop"] .mainTopBar{
+    width:292px!important;
+    padding:12px!important;
+    border-radius:26px!important;
+    right:auto!important;
+  }
+  html[data-device-mode="desktop"] .mainBrandIdentity{
+    padding:58px 12px 16px!important;
+    min-height:205px!important;
+  }
+  html[data-device-mode="desktop"] .mainAppSwitcher{
+    padding:7px!important;
+    gap:6px!important;
+  }
+  html[data-device-mode="desktop"] .mainAppSwitcher button{
+    min-height:52px!important;
+    padding:11px 13px!important;
+  }
+
+  /* توسيع مساحة المحتوى الرئيسية وإعطاؤها تنفسًا أفضل. */
+  html[data-device-mode="desktop"] #wirdModule,
+  html[data-device-mode="desktop"] #zadModule,
+  html[data-device-mode="desktop"] #heartModule,
+  html[data-device-mode="desktop"] #hadithModule{
+    min-width:0!important;
+    width:100%!important;
+    padding-left:4px!important;
+    padding-right:4px!important;
+  }
+  html[data-device-mode="desktop"] #wirdModule #home,
+  html[data-device-mode="desktop"] #wirdModule #search{
+    grid-template-columns:minmax(270px,310px) minmax(0,1fr)!important;
+    gap:20px!important;
+  }
+  html[data-device-mode="desktop"] #wirdModule #home>.card,
+  html[data-device-mode="desktop"] #wirdModule #search>.card,
+  html[data-device-mode="desktop"] .zadPanel,
+  html[data-device-mode="desktop"] .heartPanel,
+  html[data-device-mode="desktop"] .hadithPanel{
+    border-radius:26px!important;
+  }
+  html[data-device-mode="desktop"] .card{
+    padding:19px 21px!important;
+  }
+
+  /* قراءة القرآن على الكمبيوتر: سطر أوسع ومسافات أهدأ للعين. */
+  html[data-device-mode="desktop"] .ayahBlock{
+    padding:19px 22px!important;
+    margin:12px 0!important;
+    border-radius:21px!important;
+  }
+  html[data-device-mode="desktop"] .ayahText{
+    font-size:31px!important;
+    line-height:2.42!important;
+  }
+  html[data-device-mode="desktop"] .ayahMeta{
+    margin-bottom:8px!important;
+  }
+  html[data-device-mode="desktop"] #wirdContent,
+  html[data-device-mode="desktop"] #searchResults{
+    min-width:0!important;
+  }
+
+  /* بطاقات الرسائل والمحتوى: أوسع وأريح بدل الإحساس بالتكدس. */
+  html[data-device-mode="desktop"] #zadModule .zadGrid{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    gap:18px!important;
+  }
+  html[data-device-mode="desktop"] #zadModule .zadMessageCard,
+  html[data-device-mode="desktop"] .zadCard,
+  html[data-device-mode="desktop"] .heartFeature,
+  html[data-device-mode="desktop"] .heartCard,
+  html[data-device-mode="desktop"] .hadithCard{
+    padding:20px!important;
+    border-radius:22px!important;
+  }
+  html[data-device-mode="desktop"] #zadModule .zadText{
+    font-size:16px!important;
+    line-height:2.1!important;
+  }
+  html[data-device-mode="desktop"] #zadModule .zadLesson{
+    font-size:14.5px!important;
+    line-height:2!important;
+  }
+  html[data-device-mode="desktop"] .heartDashboard,
+  html[data-device-mode="desktop"] .heartWordGrid,
+  html[data-device-mode="desktop"] .hadithOfflineGrid{
+    gap:18px!important;
+  }
+
+  /* شريط أقسام الورد السفلي يطابق موضع القائمة الجديد. */
+  html[data-device-mode="desktop"] body>.tabs{
+    right:324px!important;
+    left:12px!important;
+  }
+}
+
+/* على الشاشات المتوسطة نحافظ على مساحة قراءة كافية دون كسر التخطيط. */
+@media (min-width:900px) and (max-width:1180px){
+  html[data-device-mode="desktop"] .wrap{
+    grid-template-columns:minmax(0,1fr) 268px!important;
+    gap:18px!important;
+  }
+  html[data-device-mode="desktop"] .mainTopBar{width:268px!important}
+  html[data-device-mode="desktop"] #wirdModule #home,
+  html[data-device-mode="desktop"] #wirdModule #search{
+    grid-template-columns:1fr!important;
+  }
+  html[data-device-mode="desktop"] body>.tabs{right:292px!important}
+}
+</style>
+<!-- ZAD_V67_DESKTOP_COMFORT_END -->
+
+
+
+<!-- ZAD_V68_DESKTOP_PRO_LAYOUT_START -->
+<style id="zad-v68-desktop-pro-layout">
+/* v68 — إعادة توزيع احترافية لنسخة الكمبيوتر فقط، دون تغيير أي محتوى. */
+@media (min-width:1100px){
+  html[data-device-mode="desktop"] body{
+    overflow-x:hidden!important;
+  }
+  html[data-device-mode="desktop"] .wrap{
+    width:calc(100vw - 20px)!important;
+    max-width:1920px!important;
+    margin:0 auto!important;
+    padding:10px 10px 18px 20px!important;
+    grid-template-columns:minmax(0,1fr) 248px!important;
+    gap:20px!important;
+    align-items:start!important;
+  }
+
+  /* شريط جانبي أنحف وأقرب إلى يمين الشاشة. */
+  html[data-device-mode="desktop"] .mainTopBar{
+    width:248px!important;
+    min-width:248px!important;
+    padding:10px!important;
+    border-radius:24px!important;
+    top:10px!important;
+    height:calc(100vh - 20px)!important;
+  }
+  html[data-device-mode="desktop"] .mainBrandIdentity{
+    min-height:178px!important;
+    padding:50px 10px 13px!important;
+  }
+  html[data-device-mode="desktop"] .mainBrandEmblem{
+    width:62px!important;
+    height:62px!important;
+    min-width:62px!important;
+    font-size:32px!important;
+    border-radius:20px!important;
+  }
+  html[data-device-mode="desktop"] .mainBrandTitle{font-size:27px!important}
+  html[data-device-mode="desktop"] .mainBrandPrayer{
+    font-size:11.5px!important;
+    line-height:1.65!important;
+    margin-top:8px!important;
+    padding:7px 8px!important;
+  }
+  html[data-device-mode="desktop"] .mainAppSwitcher{
+    padding:6px!important;
+    gap:5px!important;
+  }
+  html[data-device-mode="desktop"] .mainAppSwitcher button{
+    min-height:47px!important;
+    padding:9px 12px!important;
+    font-size:13px!important;
+  }
+
+  /* منطقة المحتوى تأخذ المساحة الحقيقية المتاحة وتبقى في المنتصف بصريًا. */
+  html[data-device-mode="desktop"] #wirdModule,
+  html[data-device-mode="desktop"] #zadModule,
+  html[data-device-mode="desktop"] #heartModule,
+  html[data-device-mode="desktop"] #hadithModule{
+    width:100%!important;
+    max-width:none!important;
+    min-width:0!important;
+    padding:0 0 86px!important;
+  }
+
+  html[data-device-mode="desktop"] #wirdModule>header,
+  html[data-device-mode="desktop"] .zadHero,
+  html[data-device-mode="desktop"] .heartHero,
+  html[data-device-mode="desktop"] .hadithHero{
+    width:100%!important;
+    margin-left:auto!important;
+    margin-right:auto!important;
+  }
+
+  /* أهم إصلاح: لا نضع بطاقة معلومات الورد بجانب الآيات على الكمبيوتر. */
+  html[data-device-mode="desktop"] #wirdModule #home,
+  html[data-device-mode="desktop"] #wirdModule #search{
+    display:grid!important;
+    grid-template-columns:minmax(0,1fr)!important;
+    gap:16px!important;
+    width:100%!important;
+    align-items:start!important;
+  }
+  html[data-device-mode="desktop"] #wirdModule #home>.card,
+  html[data-device-mode="desktop"] #wirdModule #search>.card{
+    width:100%!important;
+    max-width:none!important;
+    margin:0!important;
+  }
+
+  /* بطاقة التحكم أعلى الصفحة بشكل أخف، ثم المحتوى بعرض كامل. */
+  html[data-device-mode="desktop"] #wirdModule #home>.card:first-child{
+    padding:16px 20px!important;
+    border-radius:22px!important;
+  }
+  html[data-device-mode="desktop"] #wirdModule #home>.card:nth-child(2){
+    padding:14px 16px!important;
+    border-radius:24px!important;
+  }
+
+  /* الآيات تتمركز وتتنفس بدل الالتصاق بأحد الجوانب. */
+  html[data-device-mode="desktop"] #wirdContent,
+  html[data-device-mode="desktop"] #searchResults{
+    width:100%!important;
+    max-width:1480px!important;
+    margin-inline:auto!important;
+  }
+  html[data-device-mode="desktop"] .ayahBlock{
+    width:100%!important;
+    box-sizing:border-box!important;
+    padding:20px 26px!important;
+    margin:12px auto!important;
+    border-radius:22px!important;
+  }
+  html[data-device-mode="desktop"] .ayahText{
+    max-width:1280px!important;
+    margin-inline:auto!important;
+    font-size:30px!important;
+    line-height:2.25!important;
+  }
+
+  /* بطاقات الرسائل في بقية الأقسام تتمركز داخل مساحة المحتوى. */
+  html[data-device-mode="desktop"] .zadPanel,
+  html[data-device-mode="desktop"] .heartPanel,
+  html[data-device-mode="desktop"] .hadithPanel{
+    width:100%!important;
+    max-width:1500px!important;
+    margin-left:auto!important;
+    margin-right:auto!important;
+  }
+
+  /* شريط أقسام الورد السفلي يتبع عرض السايدبار الجديد. */
+  html[data-device-mode="desktop"] body>.tabs{
+    right:278px!important;
+    left:12px!important;
+  }
+}
+
+/* الشاشات المكتبية المتوسطة: نفس الفكرة، محتوى كامل تحت بطاقة التحكم. */
+@media (min-width:900px) and (max-width:1099px){
+  html[data-device-mode="desktop"] .wrap{
+    grid-template-columns:minmax(0,1fr) 238px!important;
+    gap:14px!important;
+  }
+  html[data-device-mode="desktop"] .mainTopBar{
+    width:238px!important;
+    min-width:238px!important;
+  }
+  html[data-device-mode="desktop"] #wirdModule #home,
+  html[data-device-mode="desktop"] #wirdModule #search{
+    grid-template-columns:1fr!important;
+    gap:14px!important;
+  }
+  html[data-device-mode="desktop"] body>.tabs{right:264px!important}
+}
+</style>
+<!-- ZAD_V68_DESKTOP_PRO_LAYOUT_END -->
+
 </body>
 </html>
 
