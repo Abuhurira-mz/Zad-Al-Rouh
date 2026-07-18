@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="ar" dir="rtl">
+<html lang="ar" dir="rtl" data-palette="emerald">
 <head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
@@ -160,6 +160,47 @@
     }
     .ayahNumber{color:var(--gold);white-space:nowrap;font-family:"Noto Naskh Arabic",serif}
     .ayahTools{margin-top:10px}
+    .ayahAudioBtn{min-width:132px}
+    .ayahAudioBtn.playing{background:var(--gold);color:#201707}
+    .ayahReciterSelect{
+      width:auto;
+      min-width:220px;
+      max-width:100%;
+      padding:9px 11px;
+      border-radius:14px;
+      background:var(--card2);
+      color:var(--text);
+      border:1px solid var(--line);
+    }
+    .ayahAudioStatus{
+      width:100%;
+      min-height:20px;
+      color:var(--muted);
+      font-size:12px;
+      line-height:1.7;
+    }
+    .ayahAudioStatus.bad{color:#ff9d9d}
+    @media(max-width:560px){
+      .ayahTools .ayahAudioBtn,.ayahTools .ayahReciterSelect{width:100%}
+      .ayahReciterSelect{min-width:0}
+    }
+
+    /* ===== القرآن كامل صوتيًا ===== */
+    .quranAudioTop{display:grid;grid-template-columns:1fr;gap:10px;align-items:end}
+    .quranAudioTop .ayahReciterSelect{width:100%;max-width:none}
+    .quranAudioNow{margin-top:12px;padding:12px 14px;border-radius:16px;background:var(--card2);border:1px solid var(--line);min-height:48px}
+    .quranAudioList{display:grid;gap:9px;margin-top:14px}
+    .quranAudioSurah{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;padding:12px 14px;border-radius:17px;background:rgba(255,255,255,.035);border:1px solid var(--line)}
+    .quranAudioSurahName{font-size:17px;font-weight:800;color:var(--text)}
+    .quranAudioSurahMeta{font-size:12px;color:var(--muted);margin-top:3px}
+    .quranAudioPlayBtn{min-width:128px}
+    .quranAudioPlayBtn.playing{background:var(--gold);color:#201707}
+    .quranAudioNote{margin-top:10px;padding:10px 12px;border-radius:14px;background:rgba(223,189,114,.08);border:1px solid rgba(223,189,114,.35);color:var(--muted);font-size:13px;line-height:1.8}
+    @media(max-width:620px){
+      .quranAudioTop{grid-template-columns:1fr}
+      .quranAudioSurah{grid-template-columns:1fr}
+      .quranAudioPlayBtn{width:100%}
+    }
     .tafsirBox{
       margin-top:10px;
       padding:12px;
@@ -180,12 +221,15 @@
       padding:8px max(8px,env(safe-area-inset-left)) calc(8px + env(safe-area-inset-bottom));
       display:flex;
       gap:6px;
+      overflow-x:auto;
+      scrollbar-width:none;
       background:rgba(6,20,14,.97);
       backdrop-filter:blur(12px);
       border-top:1px solid var(--line);
       z-index:20;
     }
-    .tabs button{flex:1;min-width:60px;background:#173c2b;padding:10px 4px;font-size:12px}
+    .tabs::-webkit-scrollbar{display:none}
+    .tabs button{flex:1 0 auto;min-width:88px;background:#173c2b;padding:10px 7px;font-size:12px}
     .tabs button.active{background:var(--gold);color:#201707}
     .notice{border:1px solid rgba(223,189,114,.45);background:rgba(223,189,114,.08)}
 
@@ -2304,7 +2348,7 @@ html.zad-v29-final .zadPanel,html.zad-v29-final .heartPanel,html.zad-v29-final .
 }
 </style>
 
-<meta name="zad-build" content="V1.1-v51">
+<meta name="zad-build" content="V1.1-v57-audio-quran-fix">
 </head>
 <body>
   <div class="wrap">
@@ -2475,6 +2519,24 @@ html.zad-v29-final .zadPanel,html.zad-v29-final .heartPanel,html.zad-v29-final .
       </div>
     </section>
 
+    <section id="quranAudio" class="page hidden" aria-hidden="true">
+      <div class="card">
+        <h2 class="gold" style="margin:0">القرآن كامل صوتيًا</h2>
+        <div class="status" style="margin-top:8px">اختر القارئ ثم اضغط زر السورة لبدء التلاوة.</div>
+        <div class="quranAudioNote">تنبيه: لا تقطع الآية. إذا أردت إيقاف التلاوة، فانتظر حتى تنتهي الآية، ثم اضغط «إيقاف التلاوة».</div>
+        <div class="quranAudioTop" style="margin-top:12px">
+          <div>
+            <label for="fullSurahReciterSelect">القارئ</label>
+            <select id="fullSurahReciterSelect" class="fullSurahReciterSelect" onchange="changeFullSurahReciter(this.value)"></select>
+          </div>
+        </div>
+        <div id="fullSurahAudioStatus" class="quranAudioNow status">اختر سورة لبدء التلاوة.</div>
+      </div>
+      <div class="card">
+        <div id="quranAudioSurahList" class="quranAudioList"></div>
+      </div>
+    </section>
+
     <section id="search" class="page hidden">
       <div class="card">
         <label for="searchInput">ابحث في القرآن الكريم</label>
@@ -2538,7 +2600,8 @@ html.zad-v29-final .zadPanel,html.zad-v29-final .heartPanel,html.zad-v29-final .
     <div class="footer">
       المصحف الكامل: النسخة المرفقة داخل البرنامج كما هي بصيغة PDF.<br>
       نص الورد والبحث: Al Quran Cloud — quran-uthmani.<br>
-      مصدر التفسير: المختصر في تفسير القرآن الكريم — مركز تفسير للدراسات القرآنية، عبر QuranEnc.com — النسخة 1.0.0.
+      مصدر التفسير: المختصر في تفسير القرآن الكريم — مركز تفسير للدراسات القرآنية، عبر QuranEnc.com — النسخة 1.0.0.<br>
+      التلاوات الصوتية: الحصري المجوّد والمنشاوي المجوّد والعفاسي وياسر الدوسري عبر EveryAyah، ومحمد اللحيدان عبر تسجيلات السور الموقّتة. يلزم اتصال بالإنترنت للتشغيل.
     </div>
 
     </div><!-- /wirdModule -->
@@ -2810,6 +2873,7 @@ html.zad-v29-final .zadPanel,html.zad-v29-final .heartPanel,html.zad-v29-final .
   <nav class="tabs">
     <button id="tab-home" class="active" onclick="showPage('home')">ورد اليوم</button>
     <button id="tab-quran" onclick="showPage('quran')">القرآن كامل</button>
+    <button id="tab-quranAudio" onclick="showPage('quranAudio')">القرآن كامل صوتيًا</button>
     <button id="tab-search" onclick="showPage('search')">بحث</button>
     <button id="tab-books" onclick="showPage('books')">الكتب</button>
     <button id="tab-settings" onclick="showPage('settings')">ضبط</button>
@@ -2830,6 +2894,70 @@ const START_KEY = 'wird_start_date_v2';
 const AMOUNT_KEY = 'wird_daily_hizb_v2';
 const DONE_KEY = 'wird_done_map_v2';
 const TAFSIR_CACHE_PREFIX = 'wird_tafsir_mokhtasar_v1_';
+const AYAH_RECITER_KEY = 'wird_ayah_reciter_v1_';
+const FULL_SURAH_RECITER_KEY = 'wird_full_surah_reciter_v1_';
+const EVERYAYAH_AUDIO_BASE = 'https://everyayah.com/data';
+const TIMED_QURAN_AUDIO_BASE = 'https://cdn.mualim.app';
+const TIMED_QURAN_HF_BASE = 'https://huggingface.co/datasets/zaibihassan/Quranic-Recitation-Data/resolve/main';
+// ترتيب القراء: الحصري، المنشاوي، محمد أيوب، اللحيدان، الدوسري، العفاسي.
+const AYAH_RECITERS = {
+  husary_mujawwad:{
+    label:'محمود خليل الحصري — مجوّد',
+    type:'ayah',
+    folder:'Husary_128kbps_Mujawwad',
+    fullSurahBase:'https://server13.mp3quran.net/husr/Almusshaf-Al-Mojawwad/'
+  },
+  minshawi_mujawwad:{
+    label:'محمد صديق المنشاوي — مجوّد',
+    type:'ayah',
+    folder:'Minshawy_Mujawwad_192kbps',
+    fullSurahBase:'https://server10.mp3quran.net/minsh/Almusshaf-Al-Mojawwad/'
+  },
+  muhammad_ayyoub_murattal:{
+    label:'محمد أيوب — ترتيل',
+    type:'ayah',
+    folder:'Muhammad_Ayyoub_128kbps',
+    fullSurahBase:'https://server8.mp3quran.net/ayyub/'
+  },
+  luhaidan_murattal:{
+    label:'محمد اللحيدان — ترتيل',
+    type:'timed-surah',
+    slug:'muhammad-al-luhaidan-murattal',
+    folderName:'Muhammad Al Luhaidan (Murattal)',
+    fullSurahBase:'https://server8.mp3quran.net/lhdan/'
+  },
+  yasser_dossari_murattal:{
+    label:'ياسر الدوسري — ترتيل',
+    type:'ayah',
+    folder:'Yasser_Ad-Dussary_128kbps',
+    fullSurahBase:'https://server11.mp3quran.net/yasser/'
+  },
+  alafasy_murattal:{
+    label:'مشاري راشد العفاسي — ترتيل',
+    type:'ayah',
+    folder:'Alafasy_128kbps',
+    fullSurahBase:'https://server8.mp3quran.net/afs/'
+  }
+};
+// قراء الورد اليومي فقط: خمسة قراء، مع استبعاد محمد اللحيدان من تشغيل الآيات المفردة.
+const DAILY_AYAH_RECITER_KEYS = [
+  'husary_mujawwad',
+  'minshawi_mujawwad',
+  'muhammad_ayyoub_murattal',
+  'yasser_dossari_murattal',
+  'alafasy_murattal'
+];
+const DAILY_AYAH_RECITERS = Object.fromEntries(
+  DAILY_AYAH_RECITER_KEYS.map(key => [key, AYAH_RECITERS[key]])
+);
+let ayahAudioPlayer = null;
+let activeAyahAudio = null;
+let ayahAudioRequestToken = 0;
+const ayahTimingCache = new Map();
+let fullSurahAudioPlayer = null;
+let activeFullSurahAudio = null;
+let fullSurahAudioRequestToken = 0;
+let fullQuranAudioListRendered = false;
 const THEME_KEY = 'wird_theme_v1';
 const PALETTE_KEY = 'wird_palette_v1';
 const ZAD_PALETTE_KEY = 'zad_palette_v1';
@@ -2999,6 +3127,9 @@ async function init(){
 
     prepareData();
     if($('surahSelect')) fillSurahs();
+    // لا نبني قائمة 114 سورة عند بدء التطبيق حتى تظل البداية وورد اليوم خفيفين.
+    // إذا كان المستخدم فتح صفحة الصوت أثناء اكتمال تحميل القرآن، نبنيها عندها فقط.
+    if(!$('quranAudio')?.classList.contains('hidden')) initFullQuranAudioSection();
     $('loading').classList.add('hidden');
     showToday();
   }catch(error){
@@ -3110,12 +3241,16 @@ function switchMainApp(mode, animate=true){
 }
 
 function showPage(name){
+  // لا نسمح بتشغيل تلاوتين معًا عند الانتقال بين أركان الورد اليومي.
+  if(activeAyahAudio) stopAyahAudio();
+  if(activeFullSurahAudio) stopFullSurahAudio();
   if(document.getElementById('wirdModule')?.classList.contains('hidden')) switchMainApp('wird', false);
   document.querySelectorAll('.page').forEach(page=>page.classList.add('hidden'));
   $(name).classList.remove('hidden');
   document.querySelectorAll('.tabs button').forEach(button=>button.classList.remove('active'));
   $('tab-'+name).classList.add('active');
   if(name === 'quran') openQuranMushaf();
+  if(name === 'quranAudio') initFullQuranAudioSection();
   window.scrollTo({top:0,behavior:'smooth'});
 }
 
@@ -3171,7 +3306,7 @@ function renderPortion(number){
   $('progressInner').style.width = `${percent}%`;
   $('progressText').textContent = `تقدم الختمة الحالية: ${arabicDigits(percent)}٪`;
   $('wirdContent').innerHTML = renderAyahList(ayahs);
-  window.scrollTo({top:0,behavior:'smooth'});
+  window.scrollTo({top:0,behavior:'auto'});
 }
 
 function ayahDomId(a){
@@ -3228,6 +3363,677 @@ function cleanQuranDisplayText(text){
     .trim();
 }
 
+function getSelectedAyahReciter(){
+  try{
+    const saved = localStorage.getItem(AYAH_RECITER_KEY);
+    if(saved && DAILY_AYAH_RECITERS[saved]) return saved;
+  }catch(error){}
+  return 'husary_mujawwad';
+}
+
+function getSelectedFullSurahReciter(){
+  try{
+    const saved = localStorage.getItem(FULL_SURAH_RECITER_KEY);
+    if(saved && AYAH_RECITERS[saved]) return saved;
+  }catch(error){}
+  return 'husary_mujawwad';
+}
+
+function renderAyahReciterOptions(){
+  const selected = getSelectedAyahReciter();
+  return Object.entries(DAILY_AYAH_RECITERS).map(([key,info])=>
+    `<option value="${key}"${key===selected?' selected':''}>${escapeHTML(info.label)}</option>`
+  ).join('');
+}
+
+function renderFullSurahReciterOptions(){
+  const selected = getSelectedFullSurahReciter();
+  return Object.entries(AYAH_RECITERS).map(([key,info])=>
+    `<option value="${key}"${key===selected?' selected':''}>${escapeHTML(info.label)}</option>`
+  ).join('');
+}
+
+function syncReciterSelectors(value){
+  document.querySelectorAll('.ayahReciterSelect').forEach(select=>{
+    if(select.value !== value) select.value = value;
+  });
+}
+
+function clearAyahAudioStatuses(){
+  document.querySelectorAll('.ayahAudioStatus').forEach(status=>{
+    status.textContent = '';
+    status.classList.remove('bad');
+  });
+}
+
+function changeAyahReciter(value){
+  if(!AYAH_RECITERS[value]) return;
+  try{ localStorage.setItem(AYAH_RECITER_KEY,value); }catch(error){}
+  stopAyahAudio();
+  if(ayahAudioPlayer){
+    try{
+      ayahAudioPlayer.pause();
+      ayahAudioPlayer.removeAttribute('src');
+      ayahAudioPlayer.load();
+    }catch(error){}
+  }
+  stopFullSurahAudio();
+  clearAyahAudioStatuses();
+  syncReciterSelectors(value);
+}
+
+function changeFullSurahReciter(value){
+  if(!AYAH_RECITERS[value]) return;
+  try{ localStorage.setItem(FULL_SURAH_RECITER_KEY,value); }catch(error){}
+  stopAyahAudio();
+  stopFullSurahAudio();
+  const select = $('fullSurahReciterSelect');
+  if(select && select.value !== value) select.value = value;
+  const status = $('fullSurahAudioStatus');
+  if(status) status.textContent = `تم اختيار ${AYAH_RECITERS[value].label}. اختر السورة لبدء التلاوة.`;
+}
+
+function padAyahAudioNumber(value){
+  return String(Number(value)).padStart(3,'0');
+}
+
+function getAyahAudioPlayer(){
+  if(ayahAudioPlayer) return ayahAudioPlayer;
+  ayahAudioPlayer = new Audio();
+  ayahAudioPlayer.preload = 'auto';
+  ayahAudioPlayer.playsInline = true;
+
+  ayahAudioPlayer.addEventListener('timeupdate',()=>{
+    if(!activeAyahAudio || !activeAyahAudio.endSeconds) return;
+    if(ayahAudioPlayer.currentTime >= activeAyahAudio.endSeconds){
+      const finished = activeAyahAudio;
+      stopAyahAudio(false);
+      const status = $(`audioStatus_${finished.id}`);
+      if(status) status.textContent = 'تم تشغيل الآية كاملة ✓';
+    }
+  });
+
+  ayahAudioPlayer.addEventListener('ended',()=>{
+    if(!activeAyahAudio) return;
+    const finished = activeAyahAudio;
+    stopAyahAudio(false);
+    const status = $(`audioStatus_${finished.id}`);
+    if(status) status.textContent = 'تم تشغيل الآية كاملة ✓';
+  });
+
+  return ayahAudioPlayer;
+}
+
+function setAyahAudioStatus(id,message,isBad=false){
+  const status = $(`audioStatus_${id}`);
+  if(!status) return;
+  status.textContent = message || '';
+  status.classList.toggle('bad',Boolean(isBad));
+}
+
+function resetAyahAudioButton(id){
+  if(!id) return;
+  const button = $(`audioBtn_${id}`);
+  if(!button) return;
+  button.disabled = false;
+  button.classList.remove('playing');
+  button.textContent = '▶ تشغيل الآية';
+}
+
+function stopAyahAudio(invalidateRequest=true){
+  if(invalidateRequest) ayahAudioRequestToken += 1;
+  if(ayahAudioPlayer){
+    try{ ayahAudioPlayer.pause(); }catch(error){}
+  }
+  if(activeAyahAudio){
+    resetAyahAudioButton(activeAyahAudio.id);
+    activeAyahAudio = null;
+  }
+}
+
+function pbReadVarint(bytes,state){
+  let value = 0;
+  let multiplier = 1;
+  let count = 0;
+  while(state.pos < bytes.length){
+    const byte = bytes[state.pos++];
+    value += (byte & 0x7f) * multiplier;
+    if((byte & 0x80) === 0) return value;
+    multiplier *= 128;
+    count += 1;
+    if(count > 9) throw new Error('ملف توقيت الصوت غير صالح');
+  }
+  throw new Error('انتهى ملف التوقيت بشكل غير متوقع');
+}
+
+function pbReadLengthBytes(bytes,state){
+  const length = pbReadVarint(bytes,state);
+  const start = state.pos;
+  const end = start + length;
+  if(end > bytes.length) throw new Error('طول غير صالح في ملف التوقيت');
+  state.pos = end;
+  return bytes.subarray(start,end);
+}
+
+function pbSkipField(bytes,state,wireType){
+  if(wireType === 0){ pbReadVarint(bytes,state); return; }
+  if(wireType === 1){ state.pos += 8; return; }
+  if(wireType === 2){
+    const length = pbReadVarint(bytes,state);
+    state.pos += length;
+    return;
+  }
+  if(wireType === 5){ state.pos += 4; return; }
+  throw new Error('نوع حقل غير مدعوم في ملف التوقيت');
+}
+
+function parseWordSegmentPb(bytes){
+  const state = {pos:0};
+  let startMs = null;
+  let endMs = null;
+  while(state.pos < bytes.length){
+    const tag = pbReadVarint(bytes,state);
+    const field = Math.floor(tag / 8);
+    const wire = tag % 8;
+    if(wire === 0){
+      const value = pbReadVarint(bytes,state);
+      if(field === 3) startMs = value;
+      else if(field === 4) endMs = value;
+    }else{
+      pbSkipField(bytes,state,wire);
+    }
+  }
+  return {startMs,endMs};
+}
+
+function parseVerseSegmentsPb(bytes){
+  const state = {pos:0};
+  let startMs = null;
+  let endMs = null;
+  while(state.pos < bytes.length){
+    const tag = pbReadVarint(bytes,state);
+    const field = Math.floor(tag / 8);
+    const wire = tag % 8;
+    if(field === 1 && wire === 2){
+      const segment = parseWordSegmentPb(pbReadLengthBytes(bytes,state));
+      if(segment.startMs !== null && (startMs === null || segment.startMs < startMs)) startMs = segment.startMs;
+      if(segment.endMs !== null && (endMs === null || segment.endMs > endMs)) endMs = segment.endMs;
+    }else{
+      pbSkipField(bytes,state,wire);
+    }
+  }
+  if(startMs === null) return null;
+  return {startMs,endMs:endMs === null ? startMs : endMs};
+}
+
+function parseTimingMapEntryPb(bytes){
+  const state = {pos:0};
+  let key = '';
+  let range = null;
+  const decoder = new TextDecoder('utf-8');
+  while(state.pos < bytes.length){
+    const tag = pbReadVarint(bytes,state);
+    const field = Math.floor(tag / 8);
+    const wire = tag % 8;
+    if(field === 1 && wire === 2){
+      key = decoder.decode(pbReadLengthBytes(bytes,state));
+    }else if(field === 2 && wire === 2){
+      range = parseVerseSegmentsPb(pbReadLengthBytes(bytes,state));
+    }else{
+      pbSkipField(bytes,state,wire);
+    }
+  }
+  return {key,range};
+}
+
+function parseSurahTimingPb(arrayBuffer){
+  const bytes = new Uint8Array(arrayBuffer);
+  const state = {pos:0};
+  const timings = {};
+  while(state.pos < bytes.length){
+    const tag = pbReadVarint(bytes,state);
+    const field = Math.floor(tag / 8);
+    const wire = tag % 8;
+    if(field === 1 && wire === 2){
+      const entry = parseTimingMapEntryPb(pbReadLengthBytes(bytes,state));
+      if(entry.key && entry.range) timings[entry.key] = entry.range;
+    }else{
+      pbSkipField(bytes,state,wire);
+    }
+  }
+  return timings;
+}
+
+function timedReciterUrls(info,surahNumber,extension){
+  const surah = padAyahAudioNumber(surahNumber);
+  const folder = encodeURIComponent(info.folderName).replace(/%2F/gi,'/');
+  return [
+    `${TIMED_QURAN_AUDIO_BASE}/${info.slug}/${surah}.${extension}`,
+    `${TIMED_QURAN_HF_BASE}/${folder}/${surah}/${surah}.${extension}`
+  ];
+}
+
+async function fetchTimedSurahRanges(reciterKey,surahNumber){
+  const info = AYAH_RECITERS[reciterKey];
+  const cacheKey = `${reciterKey}:${surahNumber}`;
+  if(ayahTimingCache.has(cacheKey)) return ayahTimingCache.get(cacheKey);
+
+  let lastError = null;
+  for(const url of timedReciterUrls(info,surahNumber,'pb')){
+    try{
+      const response = await fetch(url,{cache:'force-cache'});
+      if(!response.ok) throw new Error(`HTTP ${response.status}`);
+      const timings = parseSurahTimingPb(await response.arrayBuffer());
+      if(!Object.keys(timings).length) throw new Error('ملف التوقيت فارغ');
+      ayahTimingCache.set(cacheKey,timings);
+      return timings;
+    }catch(error){
+      lastError = error;
+    }
+  }
+  throw lastError || new Error('تعذر تحميل توقيت الآيات');
+}
+
+function getTimedVerseRange(timings,surahNumber,ayahNumber){
+  if(!timings) return null;
+  const s=Number(surahNumber), a=Number(ayahNumber);
+  const candidates=[
+    `${s}:${a}`,
+    `${String(s).padStart(3,'0')}:${a}`,
+    `${s}:${String(a).padStart(3,'0')}`,
+    `${String(s).padStart(3,'0')}:${String(a).padStart(3,'0')}`
+  ];
+  for(const key of candidates){
+    if(timings[key]) return timings[key];
+  }
+  // احتياط لبعض ملفات التوقيت التي قد تختلف صيغة مفتاح السورة فيها.
+  const suffix=`:${a}`;
+  const paddedSuffix=`:${String(a).padStart(3,'0')}`;
+  for(const [key,value] of Object.entries(timings)){
+    if(key.endsWith(suffix) || key.endsWith(paddedSuffix)){
+      const left=Number(String(key).split(':')[0]);
+      if(!Number.isFinite(left) || left===s) return value;
+    }
+  }
+  return null;
+}
+
+function waitForAudioSeek(audio,targetSeconds,timeoutMs=3500){
+  return new Promise(resolve=>{
+    let finished=false;
+    const finish=()=>{
+      if(finished) return;
+      finished=true;
+      clearTimeout(timer);
+      audio.removeEventListener('seeked',onSeeked);
+      audio.removeEventListener('canplay',onCanPlay);
+      resolve();
+    };
+    const closeEnough=()=>Number.isFinite(audio.currentTime) && Math.abs(audio.currentTime-targetSeconds)<1.5;
+    const onSeeked=()=>finish();
+    const onCanPlay=()=>{ if(closeEnough()) finish(); };
+    const timer=setTimeout(finish,timeoutMs);
+    audio.addEventListener('seeked',onSeeked,{once:true});
+    audio.addEventListener('canplay',onCanPlay);
+    try{
+      if(typeof audio.fastSeek==='function') audio.fastSeek(targetSeconds);
+      else audio.currentTime=targetSeconds;
+    }catch(error){
+      try{ audio.currentTime=targetSeconds; }catch(ignore){}
+    }
+    if(closeEnough()) setTimeout(finish,40);
+  });
+}
+
+function waitForAudioMetadata(audio,timeoutMs=15000){
+  if(audio.readyState >= 1) return Promise.resolve();
+  return new Promise((resolve,reject)=>{
+    let done = false;
+    const finish = (error)=>{
+      if(done) return;
+      done = true;
+      clearTimeout(timer);
+      audio.removeEventListener('loadedmetadata',onReady);
+      audio.removeEventListener('error',onError);
+      error ? reject(error) : resolve();
+    };
+    const onReady = ()=>finish();
+    const onError = ()=>finish(new Error('تعذر تحميل ملف التلاوة'));
+    const timer = setTimeout(()=>finish(new Error('استغرق تحميل التلاوة وقتًا طويلًا')),timeoutMs);
+    audio.addEventListener('loadedmetadata',onReady,{once:true});
+    audio.addEventListener('error',onError,{once:true});
+  });
+}
+
+async function playDirectAyahAudio(info,surahNumber,ayahNumber,token){
+  const audio = getAyahAudioPlayer();
+  const url = `${EVERYAYAH_AUDIO_BASE}/${info.folder}/${padAyahAudioNumber(surahNumber)}${padAyahAudioNumber(ayahNumber)}.mp3`;
+  audio.muted = false;
+  audio.src = url;
+  audio.currentTime = 0;
+  activeAyahAudio.endSeconds = null;
+  if(token !== ayahAudioRequestToken) return;
+  await audio.play();
+}
+
+async function loadSingleTimedAudioSource(audio,url,token){
+  if(token !== ayahAudioRequestToken) return false;
+  audio.pause();
+  try{
+    audio.removeAttribute('src');
+    audio.load();
+  }catch(error){}
+  audio.src = url;
+  audio.muted = true;
+  audio.preload = 'auto';
+  audio.load();
+
+  // نبدأ تشغيلًا صامتًا من نفس ضغطة المستخدم حتى تسمح هواتف Android/iPhone
+  // باستكمال التشغيل بعد جلب ملف التوقيت والقفز إلى موضع الآية.
+  const primePlay = audio.play().catch(()=>null);
+  await waitForAudioMetadata(audio,15000);
+  await primePlay;
+  if(token !== ayahAudioRequestToken) return false;
+  return true;
+}
+
+async function loadTimedAudioSource(audio,audioUrls,token){
+  let lastError = null;
+  for(const url of audioUrls){
+    if(token !== ayahAudioRequestToken) return false;
+    try{
+      await loadSingleTimedAudioSource(audio,url,token);
+      return true;
+    }catch(error){
+      lastError = error;
+    }
+  }
+  throw lastError || new Error('تعذر تحميل ملف التلاوة');
+}
+
+async function playTimedAyahAudio(reciterKey,info,surahNumber,ayahNumber,token){
+  const audio = getAyahAudioPlayer();
+  // نفضّل ملف MP3 الكامل من MP3Quran لأنه الأكثر توافقًا مع Android/WebView،
+  // ونُبقي ملفات OPUS من Mualim كخيار احتياطي.
+  const audioUrls = [];
+  const mp3Url = info.fullSurahBase ? `${info.fullSurahBase}${padAyahAudioNumber(surahNumber)}.mp3` : '';
+  if(mp3Url) audioUrls.push(mp3Url);
+  timedReciterUrls(info,surahNumber,'opus').forEach(url=>{ if(url && !audioUrls.includes(url)) audioUrls.push(url); });
+
+  // مهم للهاتف: نبدأ طلب تشغيل صامت فور ضغطة المستخدم وقبل انتظار ملف التوقيت.
+  // هذا يمنع Android WebView من رفض التشغيل بعد اكتمال fetch وفقدان "ضغطة المستخدم".
+  let firstSourcePrimed = false;
+  let primePlay = Promise.resolve();
+  try{
+    audio.pause();
+    try{ audio.removeAttribute('src'); audio.load(); }catch(ignore){}
+    audio.src = audioUrls[0];
+    audio.muted = true;
+    audio.preload = 'auto';
+    audio.load();
+    primePlay = audio.play().catch(()=>null);
+    firstSourcePrimed = true;
+  }catch(error){}
+
+  const timings = await fetchTimedSurahRanges(reciterKey,surahNumber);
+  if(token !== ayahAudioRequestToken) return;
+
+  const range = getTimedVerseRange(timings,surahNumber,ayahNumber);
+  if(!range || !Number.isFinite(range.startMs)) throw new Error('لم يتم العثور على توقيت هذه الآية');
+  const nextRange = getTimedVerseRange(timings,surahNumber,ayahNumber + 1);
+
+  // عند تشغيل الآية الأولى من السورة نبدأ من أول ملف السورة نفسه؛
+  // هذا يضمن عدم تفويت البسملة، ويصلح بداية الفاتحة عند محمد اللحيدان.
+  const startSeconds = Number(ayahNumber) === 1
+    ? 0
+    : Math.max(0,(range.startMs / 1000) - 0.08);
+  let endSeconds;
+  if(nextRange && Number.isFinite(nextRange.startMs)){
+    endSeconds = Math.max((Number(range.endMs || range.startMs) / 1000) + 0.45,(nextRange.startMs / 1000) + 0.04);
+  }else{
+    endSeconds = (Number(range.endMs || range.startMs) / 1000) + 2.0;
+  }
+
+  let lastError = null;
+  for(let index=0; index<audioUrls.length; index++){
+    const url = audioUrls[index];
+    if(token !== ayahAudioRequestToken) return;
+    try{
+      if(index===0 && firstSourcePrimed){
+        await waitForAudioMetadata(audio,15000);
+        await primePlay;
+      }else{
+        await loadSingleTimedAudioSource(audio,url,token);
+      }
+      if(token !== ayahAudioRequestToken) return;
+
+      await waitForAudioSeek(audio,startSeconds,5000);
+      if(token !== ayahAudioRequestToken) return;
+
+      activeAyahAudio.endSeconds = Math.max(startSeconds + 0.45,endSeconds);
+      audio.muted = false;
+      if(audio.paused) await audio.play();
+      return;
+    }catch(error){
+      lastError = error;
+      try{ audio.pause(); }catch(ignore){}
+      firstSourcePrimed = false;
+    }
+  }
+  throw lastError || new Error('تعذر تشغيل الآية');
+}
+
+async function playAyahAudio(surahNumber,ayahNumber){
+  const id = `${surahNumber}_${ayahNumber}`;
+  const button = $(`audioBtn_${id}`);
+  if(!button) return;
+
+  const audio = getAyahAudioPlayer();
+  // نفس الزر يوقف التلاوة حتى لو كانت ما زالت في مرحلة بدء التحميل.
+  if(activeAyahAudio && activeAyahAudio.id === id){
+    stopAyahAudio();
+    setAyahAudioStatus(id,'تم إيقاف التلاوة.');
+    return;
+  }
+
+  stopFullSurahAudio();
+  stopAyahAudio(false);
+  const token = ++ayahAudioRequestToken;
+  const reciterKey = getSelectedAyahReciter();
+  const info = AYAH_RECITERS[reciterKey];
+  activeAyahAudio = {id,reciterKey,endSeconds:null};
+
+  // نُظهر الاستجابة فور اللمسة بدل إبقاء المستخدم أمام زر تحميل بطيء.
+  button.disabled = false;
+  button.classList.add('playing');
+  button.textContent = '■ إيقاف التلاوة';
+  setAyahAudioStatus(id,`جاري بدء التلاوة بصوت ${info.label}...`);
+
+  try{
+    if(info.type === 'timed-surah'){
+      await playTimedAyahAudio(reciterKey,info,surahNumber,ayahNumber,token);
+    }else{
+      await playDirectAyahAudio(info,surahNumber,ayahNumber,token);
+    }
+    if(token !== ayahAudioRequestToken) return;
+    button.disabled = false;
+    button.classList.add('playing');
+    button.textContent = '■ إيقاف التلاوة';
+    setAyahAudioStatus(id,`يتم الآن تشغيل الآية بصوت ${info.label}`);
+  }catch(error){
+    console.error(error);
+    if(token !== ayahAudioRequestToken) return;
+    stopAyahAudio(false);
+    // لا نظهر نافذة أو رسالة تحقق من الإنترنت؛ فقط نعيد الزر لحالته.
+    setAyahAudioStatus(id,'تعذر تشغيل هذه الآية في هذه المحاولة. اضغط تشغيل مرة أخرى.',false);
+  }
+}
+
+function getFullSurahAudioPlayer(){
+  if(fullSurahAudioPlayer) return fullSurahAudioPlayer;
+  fullSurahAudioPlayer = new Audio();
+  fullSurahAudioPlayer.preload = 'auto';
+  fullSurahAudioPlayer.playsInline = true;
+
+  fullSurahAudioPlayer.addEventListener('playing',()=>{
+    if(!activeFullSurahAudio) return;
+    const state = activeFullSurahAudio;
+    const button = $(`fullSurahBtn_${state.surahNumber}`);
+    if(button){
+      button.disabled = false;
+      button.classList.add('playing');
+      button.textContent = '■ إيقاف التلاوة';
+    }
+    const info = AYAH_RECITERS[state.reciterKey];
+    const status = $('fullSurahAudioStatus');
+    if(status) status.textContent = `يتم الآن تشغيل سورة ${state.surahName} بصوت ${info.label}`;
+  });
+
+  fullSurahAudioPlayer.addEventListener('ended',()=>{
+    if(!activeFullSurahAudio) return;
+    const finished = activeFullSurahAudio;
+    stopFullSurahAudio(false);
+    const status = $('fullSurahAudioStatus');
+    if(status) status.textContent = `اكتملت سورة ${finished.surahName} ✓`;
+  });
+
+  fullSurahAudioPlayer.addEventListener('error',()=>{
+    if(!activeFullSurahAudio) return;
+    handleFullSurahAudioError(new Error('تعذر تشغيل ملف السورة'));
+  });
+
+  return fullSurahAudioPlayer;
+}
+
+function resetFullSurahButtons(){
+  document.querySelectorAll('.quranAudioPlayBtn').forEach(button=>{
+    button.classList.remove('playing');
+    button.disabled = false;
+    button.textContent = '▶ تشغيل السورة';
+  });
+}
+
+function stopFullSurahAudio(invalidateRequest=true){
+  if(invalidateRequest) fullSurahAudioRequestToken += 1;
+  if(fullSurahAudioPlayer){
+    try{
+      fullSurahAudioPlayer.pause();
+      fullSurahAudioPlayer.currentTime = 0;
+      fullSurahAudioPlayer.removeAttribute('src');
+      fullSurahAudioPlayer.load();
+    }catch(error){}
+  }
+  resetFullSurahButtons();
+  activeFullSurahAudio = null;
+}
+
+function stopAllQuranAudio(){
+  try{ stopAyahAudio(); }catch(error){}
+  try{ stopFullSurahAudio(); }catch(error){}
+}
+window.stopAllQuranAudio = stopAllQuranAudio;
+
+function handleFullSurahAudioError(error){
+  console.error(error);
+  stopFullSurahAudio(false);
+  const status = $('fullSurahAudioStatus');
+  if(status) status.textContent = 'تعذر بدء التلاوة الآن. اضغط زر السورة مرة أخرى.';
+}
+
+function fullSurahFileUrl(info,surahNumber){
+  const base = String(info.fullSurahBase || '');
+  if(!base) return '';
+  return `${base}${padAyahAudioNumber(surahNumber)}.mp3`;
+}
+
+async function playFullSurah(surahNumber){
+  if(!quran || !Array.isArray(quran.surahs)) return;
+  const surah = quran.surahs.find(s=>Number(s.number)===Number(surahNumber));
+  if(!surah) return;
+
+  // نفس الزر يعمل تشغيل/إيقاف حتى لو كان الملف ما زال في بداية التحميل.
+  if(activeFullSurahAudio && activeFullSurahAudio.surahNumber === surah.number){
+    stopFullSurahAudio();
+    const status = $('fullSurahAudioStatus');
+    if(status) status.textContent = 'تم إيقاف التلاوة.';
+    return;
+  }
+
+  stopAyahAudio();
+  stopFullSurahAudio(false);
+
+  const token = ++fullSurahAudioRequestToken;
+  const reciterKey = getSelectedFullSurahReciter();
+  const info = AYAH_RECITERS[reciterKey];
+  const url = fullSurahFileUrl(info,surah.number);
+  const currentButton = $(`fullSurahBtn_${surah.number}`);
+  if(!url) return;
+
+  activeFullSurahAudio = {
+    token,
+    surahNumber:surah.number,
+    surahName:surah.name,
+    reciterKey
+  };
+
+  resetFullSurahButtons();
+  if(currentButton){
+    // نغيّر الزر فورًا؛ لا ننتظر الشبكة حتى يعرف المستخدم أن اللمسة تم تسجيلها.
+    currentButton.classList.add('playing');
+    currentButton.textContent = '■ إيقاف التلاوة';
+  }
+
+  const status = $('fullSurahAudioStatus');
+  if(status) status.textContent = `جاري بدء سورة ${surah.name} بصوت ${info.label}...`;
+
+  try{
+    const audio = getFullSurahAudioPlayer();
+    audio.pause();
+    audio.src = url;
+    audio.currentTime = 0;
+    audio.preload = 'auto';
+    audio.load();
+    await audio.play();
+    if(token !== fullSurahAudioRequestToken) return;
+  }catch(error){
+    if(token !== fullSurahAudioRequestToken) return;
+    handleFullSurahAudioError(error);
+  }
+}
+
+function renderFullQuranAudioSurahs(){
+  const list = $('quranAudioSurahList');
+  if(!list || !quran || !Array.isArray(quran.surahs)) return;
+  list.innerHTML = quran.surahs.map(surah=>`
+    <div class="quranAudioSurah">
+      <div>
+        <div class="quranAudioSurahName">${arabicDigits(surah.number)} — ${escapeHTML(surah.name)}</div>
+        <div class="quranAudioSurahMeta">${arabicDigits(surah.ayahs.length)} آية</div>
+      </div>
+      <button id="fullSurahBtn_${surah.number}" class="secondary quranAudioPlayBtn" type="button" onclick="playFullSurah(${surah.number})">▶ تشغيل السورة</button>
+    </div>
+  `).join('');
+}
+
+function initFullQuranAudioSection(){
+  const select = $('fullSurahReciterSelect');
+  if(select){
+    if(!select.options.length) select.innerHTML = renderFullSurahReciterOptions();
+    select.value = getSelectedFullSurahReciter();
+  }
+  if(!fullQuranAudioListRendered && quran && Array.isArray(quran.surahs)){
+    renderFullQuranAudioSurahs();
+    fullQuranAudioListRendered = true;
+  }else if(!fullQuranAudioListRendered){
+    const status = $('fullSurahAudioStatus');
+    if(status) status.textContent = 'جاري تجهيز قائمة السور...';
+  }
+}
+
+window.stopAyahAudio = stopAyahAudio;
+window.stopFullSurahAudio = stopFullSurahAudio;
+window.initFullQuranAudioSection = initFullQuranAudioSection;
+
 function renderAyahList(ayahs){
   let html = '';
   let lastSurah = null;
@@ -3248,6 +4054,9 @@ function renderAyahList(ayahs){
         <div class="ayahText">${escapeHTML(cleanQuranDisplayText(stripRepeatedBismillah(a.text, a)))} <span class="ayahNumber">﴿${arabicDigits(a.numberInSurah)}﴾</span></div>
         <div class="ayahTools row">
           <button class="secondary" id="tafsirBtn_${id}" onclick="toggleTafsir(${a.surahNumber},${a.numberInSurah})">عرض المختصر في التفسير</button>
+          <button class="secondary ayahAudioBtn" id="audioBtn_${id}" onclick="playAyahAudio(${a.surahNumber},${a.numberInSurah})">▶ تشغيل الآية</button>
+          <select class="ayahReciterSelect" aria-label="اختيار القارئ" onchange="changeAyahReciter(this.value)">${renderAyahReciterOptions()}</select>
+          <div id="audioStatus_${id}" class="ayahAudioStatus" aria-live="polite"></div>
         </div>
         <div id="tafsir_${id}" class="tafsirBox hidden" aria-live="polite"></div>
       </article>`;
@@ -4004,7 +4813,7 @@ init();
   function savedValue(key,allowed,fallback){try{const v=localStorage.getItem(key);return allowed.includes(v)?v:fallback}catch(e){return fallback}}
   function applyModeLook(mode){
     const palettes=(typeof AVAILABLE_PALETTES!=='undefined'?AVAILABLE_PALETTES:['emerald','mono','red','gold','purple','blue','rose','teal','orange']);
-    const p=savedValue(paletteKey(mode),palettes,mode==='hadith'?'purple':'emerald');
+    const p=savedValue(paletteKey(mode),palettes,'emerald');
     const th=savedValue(themeKey(mode),['dark','light'],'dark');
     if(typeof applyPalette==='function') applyPalette(p,false);
     if(typeof applyTheme==='function') applyTheme(th,false);
@@ -4056,7 +4865,7 @@ init();
   window.toggleHadithPalette=function(event){if(event)event.stopPropagation();el('hadithPalettePanel')?.classList.toggle('hidden')};
   window.chooseHadithPalette=function(palette){
     const palettes=(typeof AVAILABLE_PALETTES!=='undefined'?AVAILABLE_PALETTES:[]);
-    const final=palettes.includes(palette)?palette:'purple';
+    const final=palettes.includes(palette)?palette:'emerald';
     try{localStorage.setItem(HADITH_PALETTE_KEY,final)}catch(e){}
     if(typeof applyPalette==='function') applyPalette(final,false);
     el('hadithPalettePanel')?.classList.add('hidden');
@@ -4268,7 +5077,7 @@ ${r.duaSource}
   }
   function applySavedLook(mode){
     const finalMode=MODES.includes(mode)?mode:'wird';
-    const palette=saved(KEYS[finalMode].palette,PALETTES,finalMode==='hadith'?'purple':'emerald');
+    const palette=saved(KEYS[finalMode].palette,PALETTES,'emerald');
     const theme=saved(KEYS[finalMode].theme,['dark','light'],'dark');
     if(typeof window.applyPalette==='function') window.applyPalette(palette,false);
     else document.documentElement.setAttribute('data-palette',palette);
@@ -4401,14 +5210,15 @@ ${r.duaSource}
     box.innerHTML=rows.length?rows.map(x=>`<button class="globalSearchResult" type="button" onclick="settingsNavigate('${x.target}')"><span>${x.icon}</span><span><b>${x.title}</b><small>${x.desc}</small></span></button>`).join(''):'<div class="settingsHint">لا توجد نتيجة مطابقة.</div>';
   };
   window.settingsNavigate=function(target){
-    const go=(m,fn)=>{if(typeof window.switchMainApp==='function')window.switchMainApp(m);setTimeout(fn||(()=>{}),170)};
+    const go=(m,fn)=>{if(typeof window.switchMainApp==='function')window.switchMainApp(m,false);if(fn)requestAnimationFrame(fn)};
     if(target==='wird-home')go('wird',()=>window.showPage?.('home'));
-    else if(target==='quran-search')go('wird',()=>{window.showPage?.('search');setTimeout(()=>el('searchInput')?.focus(),160)});
+    else if(target==='quran-search')go('wird',()=>{window.showPage?.('search');requestAnimationFrame(()=>el('searchInput')?.focus())});
     else if(target==='quran-full')go('wird',()=>window.showPage?.('quran'));
     else if(target==='zad')go('zad');
     else if(target.startsWith('heart-'))go('heart',()=>window.heartShowPage?.(target.replace('heart-','')));
-    else if(target==='hadith')go('hadith',()=>setTimeout(()=>el('hadithSearchInput')?.focus(),150));
-    globalCloseSettings();setTimeout(()=>document.querySelector('.mainAppSwitcher')?.scrollIntoView({behavior:'smooth',block:'start'}),210);
+    else if(target==='hadith')go('hadith',()=>el('hadithSearchInput')?.focus());
+    globalCloseSettings();
+    window.scrollTo({top:0,left:0,behavior:'auto'});
   };
   window.showSalawat=function(){
     globalCloseSettings();const o=el('salawatOverlay');if(!o)return;o.classList.add('show');o.setAttribute('aria-hidden','false');
@@ -5079,7 +5889,7 @@ a.zadExternalPdfButton:focus-visible{
 <script id="zad-v51-stable-nav-script">
 (function(){
   'use strict';
-  const PAGES=['home','quran','search','books','settings'];
+  const PAGES=['home','quran','quranAudio','search','books','settings'];
   let current='home';
   let applying=false;
 
@@ -5097,6 +5907,14 @@ a.zadExternalPdfButton:focus-visible{
 
   function applyPage(name,options={}){
     if(!PAGES.includes(name)) name='home';
+    if(current!==name){
+      if(typeof window.stopAyahAudio==='function'){
+        try{ window.stopAyahAudio(); }catch(error){ console.error(error); }
+      }
+      if(typeof window.stopFullSurahAudio==='function'){
+        try{ window.stopFullSurahAudio(); }catch(error){ console.error(error); }
+      }
+    }
     current=name;
     applying=true;
     if(options.switchModule!==false) ensureWirdModule();
@@ -5112,9 +5930,9 @@ a.zadExternalPdfButton:focus-visible{
       const page=document.getElementById(id);
       if(!page) return;
       const hidden=id!==name;
-      page.classList.toggle('hidden',hidden);
-      page.hidden=hidden;
-      page.setAttribute('aria-hidden',String(hidden));
+      if(page.classList.contains('hidden')!==hidden) page.classList.toggle('hidden',hidden);
+      if(page.hidden!==hidden) page.hidden=hidden;
+      if(page.getAttribute('aria-hidden')!==String(hidden)) page.setAttribute('aria-hidden',String(hidden));
       if(hidden){
         page.style.setProperty('display','none','important');
         page.style.setProperty('visibility','hidden','important');
@@ -5131,6 +5949,9 @@ a.zadExternalPdfButton:focus-visible{
       button.setAttribute('aria-selected',String(active));
       button.tabIndex=active?0:-1;
     });
+    if(name==='quranAudio' && typeof window.initFullQuranAudioSection==='function'){
+      try{ window.initFullQuranAudioSection(); }catch(error){ console.error(error); }
+    }
     applying=false;
     if(options.scroll!==false) window.scrollTo({top:0,left:0,behavior:'auto'});
     return name;
@@ -5157,15 +5978,17 @@ a.zadExternalPdfButton:focus-visible{
     const active=pageNameFromButton(document.querySelector('body > nav.tabs button.active'))||'home';
     applyPage(active,{switchModule:false,scroll:false});
 
-    window.addEventListener('resize',()=>applyPage(current,{switchModule:false,scroll:false}),{passive:true});
+    let desktopMode=window.innerWidth>=900;
+    window.addEventListener('resize',()=>{
+      const nextDesktop=window.innerWidth>=900;
+      if(nextDesktop===desktopMode) return;
+      desktopMode=nextDesktop;
+      applyPage(current,{switchModule:false,scroll:false});
+    },{passive:true});
     window.addEventListener('pageshow',()=>applyPage(current,{switchModule:false,scroll:false}),{passive:true});
 
-    const pages=PAGES.map(id=>document.getElementById(id)).filter(Boolean);
-    const observer=new MutationObserver(()=>{
-      if(applying) return;
-      requestAnimationFrame(()=>applyPage(current,{switchModule:false,scroll:false}));
-    });
-    pages.forEach(page=>observer.observe(page,{attributes:true,attributeFilter:['class','hidden']}));
+    // لا نراقب تغييرات class/hidden هنا؛ المراقب السابق كان يعيد applyPage بشكل متكرر
+    // ويستهلك المعالج بلا داعٍ، وهو سبب واضح للثقل والـ delay على الهاتف.
   }
 
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',init,{once:true});
@@ -5258,7 +6081,7 @@ a.zadExternalPdfButton:focus-visible{
     document.querySelectorAll('#heartMoodGrid button').forEach(b=>b.classList.remove('active'));
     document.getElementById('heartMood-'+id)?.classList.add('active');
     const count=messageLists[id].length;
-    result.innerHTML=`<h3>${r.icon} ${r.title}</h3><div class="verse">${r.verse}</div><div class="status" style="text-align:center">${r.source}</div><div class="heartActionBox"><b>الدعاء أو الذكر:</b><br>${r.dua}<div class="status" style="margin-top:5px">${r.duaSource}</div></div><div class="heartActionBox"><b>افعل الآن:</b><br>${r.action}</div><div class="status" style="text-align:center;margin-top:8px">ضمن ${count.toLocaleString('ar-EG')} رسالة متجددة لهذه الحالة</div><div class="row" style="margin-top:11px"><button onclick="heartAnotherRemedy('${id}')">رسالة أخرى</button><button class="secondary" onclick="heartCopyRemedy('${id}')">نسخ التذكرة</button></div>`;
+    result.innerHTML=`<h3>${r.icon} ${r.title}</h3><div class="verse">${r.verse}</div><div class="status" style="text-align:center">${r.source}</div><div class="heartActionBox"><b>الدعاء أو الذكر:</b><br>${r.dua}<div class="status" style="margin-top:5px">${r.duaSource}</div></div><div class="heartActionBox"><b>افعل الآن:</b><br>${r.action}</div><div class="row" style="margin-top:11px"><button onclick="heartAnotherRemedy('${id}')">رسالة أخرى</button><button class="secondary" onclick="heartCopyRemedy('${id}')">نسخ التذكرة</button></div>`;
   }
 
   window.heartChooseMood=function(id){
@@ -5294,27 +6117,191 @@ ${r.duaSource}
     return hidden?originalHeartShowPage.call(this,name):keepScroll(()=>originalHeartShowPage.call(this,name));
   };
 
-  const wrapNames=['showPage','changeDailyAmount','changePortion','markDone','saveSettings','resetTodayStart','clearProgress','heartCompleteDaily','heartChooseAzkar','heartDhikrAdd','heartChooseTasbih','heartTasbihAdd','heartTasbihUndo','heartTasbihResetSession'];
+  const wrapNames=['changeDailyAmount','changePortion','markDone','saveSettings','resetTodayStart','clearProgress','heartCompleteDaily','heartChooseAzkar','heartDhikrAdd','heartChooseTasbih','heartTasbihAdd','heartTasbihUndo','heartTasbihResetSession'];
   wrapNames.forEach(name=>{
     const original=window[name];
     if(typeof original==='function')window[name]=function(...args){return keepScroll(()=>original.apply(this,args))};
   });
-
-  // شريط الورد السفلي لديه مستمع داخلي مباشر؛ نمنع قفزة أعلى الصفحة أثناء ضغطه.
-  document.addEventListener('click',event=>{
-    const button=event.target.closest('body > nav.tabs button[id^="tab-"]');
-    if(!button)return;
-    const x=window.scrollX,y=window.scrollY;
-    const old=window.scrollTo;
-    window.scrollTo=function(){};
-    setTimeout(()=>{window.scrollTo=old;nativeScrollTo(x,y);requestAnimationFrame(()=>nativeScrollTo(x,y));},0);
-  },true);
 
   document.documentElement.setAttribute('data-heart-remedy-count','60');
 })();
 </script>
 <!-- /ZAD_V54_HEART_VARIETY_SCROLL_STABILITY -->
 
+<!-- ZAD_V60_AUDIO_STREAMING_BISMILLAH_FIX -->
+<!-- تحسين بدء الصوت: استخدام روابط البث المباشر بدل download، وبدء الآية الأولى من أول ملف السورة لضمان البسملة. -->
+<!-- /ZAD_V60_AUDIO_STREAMING_BISMILLAH_FIX -->
+
+<!-- ZAD_V59_AUDIO_EXCLUSIVITY_PERFORMANCE -->
+<script>
+(function(){
+  'use strict';
+  const previousSwitchMainApp=window.switchMainApp;
+  if(typeof previousSwitchMainApp==='function'){
+    window.switchMainApp=function(mode,animate=true){
+      if(typeof window.stopAllQuranAudio==='function'){
+        try{ window.stopAllQuranAudio(); }catch(error){ console.error(error); }
+      }
+      return previousSwitchMainApp.call(this,mode,animate);
+    };
+  }
+})();
+</script>
+<!-- /ZAD_V59_AUDIO_EXCLUSIVITY_PERFORMANCE -->
+
 <!-- ZAD_V53_FULL_WARRIOR_RESTORED -->
+
+<!-- ZAD_V61_DAILY_RECITERS_FAST_UI -->
+<!-- الورد اليومي: 4 قراء بدون محمد اللحيدان. القرآن كامل صوتيًا: 5 قراء. إزالة تأخيرات التنقل المصطنعة وتحسين الاستجابة. -->
+<style id="zad-v61-fast-ui-style">
+  html.zad-fast-ui .page,
+  html.zad-fast-ui .smoothModuleEnter,
+  html.zad-fast-ui .pageSoftEnter,
+  html.zad-fast-ui .moduleFade{animation-duration:.12s!important;transition-duration:.12s!important}
+  @media (prefers-reduced-motion: reduce){
+    html.zad-fast-ui *,html.zad-fast-ui *::before,html.zad-fast-ui *::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}
+  }
+</style>
+<!-- /ZAD_V61_DAILY_RECITERS_FAST_UI -->
+
+
+<!-- ZAD_V62_HEART_EXPANDED_CONTENT -->
+<script id="zad-v62-heart-expanded-content">
+(function(){
+  'use strict';
+  const HEART_PLUS_LIBRARY={"worried":{"label":"مهموم","icon":"🌧️","verses":[{"title":"الله حسبك","text":"وَمَنْ يَتَوَكَّلْ عَلَى اللَّهِ فَهُوَ حَسْبُهُ","source":"الطلاق: ٣"},{"title":"مع العسر يسر","text":"فَإِنَّ مَعَ الْعُسْرِ يُسْرًا ۝ إِنَّ مَعَ الْعُسْرِ يُسْرًا","source":"الشرح: ٥–٦"},{"title":"طمأنينة الذكر","text":"أَلَا بِذِكْرِ اللَّهِ تَطْمَئِنُّ الْقُلُوبُ","source":"الرعد: ٢٨"},{"title":"في وسعك العبور","text":"لَا يُكَلِّفُ اللَّهُ نَفْسًا إِلَّا وُسْعَهَا","source":"البقرة: ٢٨٦"},{"title":"ربك قريب","text":"فَإِنِّي قَرِيبٌ أُجِيبُ دَعْوَةَ الدَّاعِ إِذَا دَعَانِ","source":"البقرة: ١٨٦"},{"title":"استعن بالصبر والصلاة","text":"اسْتَعِينُوا بِالصَّبْرِ وَالصَّلَاةِ إِنَّ اللَّهَ مَعَ الصَّابِرِينَ","source":"البقرة: ١٥٣"},{"title":"ما كُتب لك","text":"قُلْ لَنْ يُصِيبَنَا إِلَّا مَا كَتَبَ اللَّهُ لَنَا هُوَ مَوْلَانَا","source":"التوبة: ٥١"},{"title":"بعد العسر يسر","text":"سَيَجْعَلُ اللَّهُ بَعْدَ عُسْرٍ يُسْرًا","source":"الطلاق: ٧"},{"title":"لا تحزن","text":"لَا تَحْزَنْ إِنَّ اللَّهَ مَعَنَا","source":"التوبة: ٤٠"},{"title":"فوّض أمرك","text":"وَأُفَوِّضُ أَمْرِي إِلَى اللَّهِ إِنَّ اللَّهَ بَصِيرٌ بِالْعِبَادِ","source":"غافر: ٤٤"}],"hadiths":[{"text":"ما يصيب المسلم من نصب ولا وصب ولا هم ولا حزن ولا أذى ولا غم، حتى الشوكة يشاكها، إلا كفّر الله بها من خطاياه.","source":"متفق عليه"},{"text":"عجبًا لأمر المؤمن، إن أمره كله له خير؛ إن أصابته سراء شكر فكان خيرًا له، وإن أصابته ضراء صبر فكان خيرًا له.","source":"رواه مسلم"},{"text":"احرص على ما ينفعك، واستعن بالله ولا تعجز.","source":"رواه مسلم"},{"text":"من نفّس عن مؤمن كربة من كرب الدنيا نفّس الله عنه كربة من كرب يوم القيامة.","source":"رواه مسلم"},{"text":"أنا عند ظن عبدي بي، وأنا معه إذا ذكرني.","source":"متفق عليه"},{"text":"إن عظم الجزاء مع عظم البلاء، وإن الله إذا أحب قومًا ابتلاهم.","source":"رواه الترمذي وحسنه"}],"duas":[{"text":"لا إله إلا الله العظيم الحليم، لا إله إلا الله رب العرش العظيم، لا إله إلا الله رب السماوات ورب الأرض ورب العرش الكريم.","source":"دعاء الكرب — متفق عليه"},{"text":"اللهم إني أعوذ بك من الهم والحزن، والعجز والكسل، والجبن والبخل، وضلع الدين وغلبة الرجال.","source":"رواه البخاري"},{"text":"يا حي يا قيوم، برحمتك أستغيث، أصلح لي شأني كله، ولا تكلني إلى نفسي طرفة عين.","source":"دعاء مأثور"},{"text":"حسبي الله لا إله إلا هو، عليه توكلت وهو رب العرش العظيم.","source":"من القرآن — التوبة: ١٢٩"},{"text":"رب إني مسني الضر وأنت أرحم الراحمين.","source":"من القرآن — الأنبياء: ٨٣"},{"text":"لا إله إلا أنت سبحانك إني كنت من الظالمين.","source":"دعاء ذي النون — الأنبياء: ٨٧"}],"actions":["تنفّس ببطء لدقيقة، ثم اكتب أصغر خطوة تستطيع إنجازها الآن فقط.","قسّم همّك إلى أمر تستطيع فعله اليوم، وأمر لا تملكه ففوّضه إلى الله.","صلِّ ركعتين إن تيسر، ثم ابدأ بسبب واحد مشروع بدل التفكير في كل شيء دفعة واحدة.","أغلق مصادر التشتيت عشر دقائق، وردد الدعاء بقلب حاضر.","حدّث شخصًا حكيمًا تثق بدينه ورأيه، ولا تحمل الأمر وحدك.","اكتب ثلاث نعم باقية في حياتك، ثم احمد الله عليها قبل مواصلة السعي.","أجّل القرار الكبير حتى يهدأ ذهنك، واتخذ الآن قرارًا صغيرًا آمنًا فقط.","اخرج للمشي قليلًا أو غيّر مكانك، ثم عد للمشكلة بعقل أهدأ.","توقف عن إعادة السيناريوهات في ذهنك، واسأل: ما الشيء النافع الذي أستطيع فعله الآن؟","اقرأ صفحة قرآن ببطء من غير هاتف أو إشعارات حولك.","إن كان الهم بسبب دين أو حق أو مشكلة عملية، اكتب خطة من ثلاث خطوات وابدأ بالأولى.","نم في وقت مناسب الليلة؛ إرهاق الجسد يضاعف ثقل الهم ويضعف القرار."]},"afraid":{"label":"خائف","icon":"🛡️","verses":[{"title":"حسبنا الله","text":"حَسْبُنَا اللَّهُ وَنِعْمَ الْوَكِيلُ","source":"آل عمران: ١٧٣"},{"title":"الله معنا","text":"لَا تَحْزَنْ إِنَّ اللَّهَ مَعَنَا","source":"التوبة: ٤٠"},{"title":"لن يصيبنا إلا ما كُتب","text":"قُلْ لَنْ يُصِيبَنَا إِلَّا مَا كَتَبَ اللَّهُ لَنَا","source":"التوبة: ٥١"},{"title":"كفاية المتوكل","text":"وَمَنْ يَتَوَكَّلْ عَلَى اللَّهِ فَهُوَ حَسْبُهُ","source":"الطلاق: ٣"},{"title":"ربي سيهدين","text":"كَلَّا إِنَّ مَعِيَ رَبِّي سَيَهْدِينِ","source":"الشعراء: ٦٢"},{"title":"خير حافظًا","text":"فَاللَّهُ خَيْرٌ حَافِظًا وَهُوَ أَرْحَمُ الرَّاحِمِينَ","source":"يوسف: ٦٤"},{"title":"مخرج من الضيق","text":"وَمَنْ يَتَّقِ اللَّهَ يَجْعَلْ لَهُ مَخْرَجًا","source":"الطلاق: ٢"},{"title":"الله كافٍ عبده","text":"أَلَيْسَ اللَّهُ بِكَافٍ عَبْدَهُ","source":"الزمر: ٣٦"},{"title":"أسمع وأرى","text":"لَا تَخَافَا إِنَّنِي مَعَكُمَا أَسْمَعُ وَأَرَى","source":"طه: ٤٦"},{"title":"عليك توكلنا","text":"رَبَّنَا عَلَيْكَ تَوَكَّلْنَا وَإِلَيْكَ أَنَبْنَا وَإِلَيْكَ الْمَصِيرُ","source":"الممتحنة: ٤"}],"hadiths":[{"text":"احفظ الله يحفظك، احفظ الله تجده تجاهك.","source":"رواه الترمذي وقال: حسن صحيح"},{"text":"لو أنكم تتوكلون على الله حق توكله لرزقكم كما يرزق الطير؛ تغدو خماصًا وتروح بطانًا.","source":"رواه الترمذي وحسنه"},{"text":"من قال: بسم الله الذي لا يضر مع اسمه شيء في الأرض ولا في السماء وهو السميع العليم ثلاث مرات، لم يضره شيء.","source":"رواه أبو داود والترمذي وصححه"},{"text":"المؤمن القوي خير وأحب إلى الله من المؤمن الضعيف، وفي كل خير؛ احرص على ما ينفعك، واستعن بالله ولا تعجز.","source":"رواه مسلم"},{"text":"لا طيرة، وخيرها الفأل.","source":"متفق عليه"},{"text":"من نزل منزلًا فقال: أعوذ بكلمات الله التامات من شر ما خلق، لم يضره شيء حتى يرتحل من منزله ذلك.","source":"رواه مسلم"}],"duas":[{"text":"اللهم إني أسألك العفو والعافية في الدنيا والآخرة.","source":"رواه أبو داود وابن ماجه"},{"text":"اللهم استر عوراتي، وآمن روعاتي، واحفظني من بين يدي ومن خلفي وعن يميني وعن شمالي ومن فوقي.","source":"من دعاء النبي ﷺ — رواه أبو داود"},{"text":"حسبي الله لا إله إلا هو، عليه توكلت وهو رب العرش العظيم.","source":"من القرآن — التوبة: ١٢٩"},{"text":"أعوذ بكلمات الله التامات من شر ما خلق.","source":"رواه مسلم"},{"text":"حسبنا الله ونعم الوكيل.","source":"من القرآن — آل عمران: ١٧٣"},{"text":"ربنا عليك توكلنا وإليك أنبنا وإليك المصير.","source":"من القرآن — الممتحنة: ٤"}],"actions":["سمِّ الخوف بوضوح: ممَّ تخاف تحديدًا؟ ثم خذ سببًا آمنًا ومشروعًا للتعامل معه.","ابتعد عن الأخبار أو المقاطع التي تضخم خوفك بلا فائدة لمدة ساعة.","إن كان هناك خطر حقيقي، اطلب المساندة فورًا ولا تواجهه وحدك.","خذ خمس أنفاس بطيئة، ثم اتخذ قرارًا واحدًا فقط بدل قرارات كثيرة متوترة.","اكتب أسوأ احتمال واقعي، ثم ضع أمامه خطة بسيطة وآمنة للتصرف.","استشر شخصًا مختصًا أو موثوقًا إن كان الخوف متعلقًا بصحة أو مال أو أمان.","ردد ذكرًا ثابتًا بهدوء، ولا تجعل الخوف يمنعك من الأخذ بالأسباب.","قلّل الكافيين والمنبهات اليوم إن كانت تزيد توترك.","افصل بين الحقيقة والتوقع: اكتب ما تعرفه يقينًا وما هو مجرد احتمال.","أدِّ الصلاة القادمة في وقتها واجلس بعدها دقيقتين في ذكر هادئ.","لا تبحث عشرات المرات عن الشيء الذي تخشاه؛ حدّد وقتًا واحدًا للتحقق ثم توقف.","إن استمر الخوف بصورة تعطل حياتك، اطلب مساعدة مختص موثوق بجانب الدعاء والذكر."]},"guilty":{"label":"وقعت في ذنب","icon":"🌱","verses":[{"title":"لا تقنط","text":"لَا تَقْنَطُوا مِنْ رَحْمَةِ اللَّهِ إِنَّ اللَّهَ يَغْفِرُ الذُّنُوبَ جَمِيعًا","source":"الزمر: ٥٣"},{"title":"يقبل التوبة","text":"وَهُوَ الَّذِي يَقْبَلُ التَّوْبَةَ عَنْ عِبَادِهِ وَيَعْفُو عَنِ السَّيِّئَاتِ","source":"الشورى: ٢٥"},{"title":"الحسنات تمحو","text":"إِنَّ الْحَسَنَاتِ يُذْهِبْنَ السَّيِّئَاتِ","source":"هود: ١١٤"},{"title":"استغفر تجد غفورًا","text":"وَمَنْ يَعْمَلْ سُوءًا أَوْ يَظْلِمْ نَفْسَهُ ثُمَّ يَسْتَغْفِرِ اللَّهَ يَجِدِ اللَّهَ غَفُورًا رَحِيمًا","source":"النساء: ١١٠"},{"title":"بدّل السيئات حسنات","text":"إِلَّا مَنْ تَابَ وَآمَنَ وَعَمِلَ عَمَلًا صَالِحًا فَأُولَئِكَ يُبَدِّلُ اللَّهُ سَيِّئَاتِهِمْ حَسَنَاتٍ","source":"الفرقان: ٧٠"},{"title":"الله يحب التوابين","text":"إِنَّ اللَّهَ يُحِبُّ التَّوَّابِينَ","source":"البقرة: ٢٢٢"},{"title":"توبوا جميعًا","text":"وَتُوبُوا إِلَى اللَّهِ جَمِيعًا أَيُّهَ الْمُؤْمِنُونَ لَعَلَّكُمْ تُفْلِحُونَ","source":"النور: ٣١"},{"title":"توبة نصوح","text":"يَا أَيُّهَا الَّذِينَ آمَنُوا تُوبُوا إِلَى اللَّهِ تَوْبَةً نَصُوحًا","source":"التحريم: ٨"},{"title":"ظلمنا أنفسنا","text":"رَبَّنَا ظَلَمْنَا أَنْفُسَنَا وَإِنْ لَمْ تَغْفِرْ لَنَا وَتَرْحَمْنَا لَنَكُونَنَّ مِنَ الْخَاسِرِينَ","source":"الأعراف: ٢٣"},{"title":"تاب عليه","text":"فَتَلَقَّى آدَمُ مِنْ رَبِّهِ كَلِمَاتٍ فَتَابَ عَلَيْهِ","source":"البقرة: ٣٧"}],"hadiths":[{"text":"لله أشد فرحًا بتوبة عبده حين يتوب إليه من أحدكم كان على راحلته بأرض فلاة ثم وجدها بعد أن أضلها.","source":"متفق عليه"},{"text":"كل بني آدم خطّاء، وخير الخطّائين التوابون.","source":"رواه الترمذي وابن ماجه وحسنه أهل العلم"},{"text":"التائب من الذنب كمن لا ذنب له.","source":"رواه ابن ماجه وحسنه أهل العلم"},{"text":"اتق الله حيثما كنت، وأتبع السيئة الحسنة تمحها، وخالق الناس بخلق حسن.","source":"رواه الترمذي وحسنه"},{"text":"يا ابن آدم، إنك ما دعوتني ورجوتني غفرت لك على ما كان منك ولا أبالي.","source":"رواه الترمذي وحسنه"},{"text":"من كانت له مظلمة لأخيه من عرضه أو شيء فليتحلله منه اليوم قبل ألا يكون دينار ولا درهم.","source":"رواه البخاري"}],"duas":[{"text":"اللهم أنت ربي لا إله إلا أنت، خلقتني وأنا عبدك... فاغفر لي؛ فإنه لا يغفر الذنوب إلا أنت.","source":"سيد الاستغفار — رواه البخاري"},{"text":"رب اغفر لي وتب علي، إنك أنت التواب الرحيم.","source":"رواه أبو داود والترمذي"},{"text":"ربنا ظلمنا أنفسنا، وإن لم تغفر لنا وترحمنا لنكونن من الخاسرين.","source":"من القرآن — الأعراف: ٢٣"},{"text":"لا إله إلا أنت سبحانك إني كنت من الظالمين.","source":"من القرآن — الأنبياء: ٨٧"},{"text":"اللهم اغفر لي خطيئتي وجهلي وإسرافي في أمري وما أنت أعلم به مني.","source":"متفق عليه"},{"text":"اللهم إنك عفو تحب العفو فاعف عني.","source":"رواه الترمذي"}],"actions":["أوقف الذنب الآن، ولا تؤجل التوبة إلى وقت آخر.","اندَم على ما فات من غير أن تيأس، واعزم بصدق على ألا تعود.","أغلق الطريق الذي يعيدك للذنب: تطبيق، مكان، علاقة، أو عادة.","إن كان الذنب متعلقًا بحقوق الناس، رد الحق أو اطلب المسامحة بالطريقة الصحيحة.","أتبع التوبة اليوم بحسنة خفية لا يعلم بها أحد.","لا تفضح نفسك للناس؛ استر نفسك وتب إلى الله بصدق.","اكتب السبب الذي أوقعك في الذنب، ثم ضع حاجزًا عمليًا أمامه.","إن عدت بعد توبة، فلا تترك التوبة؛ تب من جديد ولا تستسلم لليأس.","ابتعد مؤقتًا عن الصحبة أو البيئة التي تجرّك للمعصية.","استبدل وقت الذنب بعادة نافعة محددة حتى لا يبقى الفراغ كما هو.","استغفر بقلب حاضر، ثم تحرك مباشرة إلى عمل صالح.","اجعل لك شخصًا صالحًا تثق به يعينك على الاستقامة من غير أن تحكي له ما لا يلزم."]},"weak":{"label":"أشعر بالفتور","icon":"🕯️","verses":[{"title":"اخشع قلبك","text":"أَلَمْ يَأْنِ لِلَّذِينَ آمَنُوا أَنْ تَخْشَعَ قُلُوبُهُمْ لِذِكْرِ اللَّهِ","source":"الحديد: ١٦"},{"title":"ما استطعتم","text":"فَاتَّقُوا اللَّهَ مَا اسْتَطَعْتُمْ","source":"التغابن: ١٦"},{"title":"جاهد تُهدَ","text":"وَالَّذِينَ جَاهَدُوا فِينَا لَنَهْدِيَنَّهُمْ سُبُلَنَا","source":"العنكبوت: ٦٩"},{"title":"استقم","text":"فَاسْتَقِمْ كَمَا أُمِرْتَ","source":"هود: ١١٢"},{"title":"أشد حبًا لله","text":"وَالَّذِينَ آمَنُوا أَشَدُّ حُبًّا لِلَّهِ","source":"البقرة: ١٦٥"},{"title":"اذكروني","text":"فَاذْكُرُونِي أَذْكُرْكُمْ","source":"البقرة: ١٥٢"},{"title":"أقم الصلاة لذكري","text":"وَأَقِمِ الصَّلَاةَ لِذِكْرِي","source":"طه: ١٤"},{"title":"ما تيسر من القرآن","text":"فَاقْرَؤُوا مَا تَيَسَّرَ مِنَ الْقُرْآنِ","source":"المزمل: ٢٠"},{"title":"الصلاة موقوتة","text":"إِنَّ الصَّلَاةَ كَانَتْ عَلَى الْمُؤْمِنِينَ كِتَابًا مَوْقُوتًا","source":"النساء: ١٠٣"},{"title":"اعبد حتى اليقين","text":"وَاعْبُدْ رَبَّكَ حَتَّى يَأْتِيَكَ الْيَقِينُ","source":"الحجر: ٩٩"}],"hadiths":[{"text":"أحب الأعمال إلى الله أدومها وإن قل.","source":"متفق عليه"},{"text":"إن الدين يسر، ولن يشاد الدين أحد إلا غلبه؛ فسددوا وقاربوا وأبشروا.","source":"رواه البخاري"},{"text":"سددوا وقاربوا، واعلموا أنه لن ينجو أحد منكم بعمله.","source":"متفق عليه"},{"text":"المؤمن القوي خير وأحب إلى الله من المؤمن الضعيف، وفي كل خير.","source":"رواه مسلم"},{"text":"عليكم من الأعمال ما تطيقون، فإن الله لا يمل حتى تملوا.","source":"متفق عليه"},{"text":"بادروا بالأعمال فتناً كقطع الليل المظلم.","source":"رواه مسلم"}],"duas":[{"text":"يا مقلب القلوب، ثبت قلبي على دينك.","source":"رواه الترمذي"},{"text":"اللهم أعني على ذكرك وشكرك وحسن عبادتك.","source":"رواه أبو داود والنسائي"},{"text":"اللهم مصرف القلوب، صرف قلبي على طاعتك.","source":"رواه مسلم"},{"text":"ربنا لا تزغ قلوبنا بعد إذ هديتنا وهب لنا من لدنك رحمة.","source":"من القرآن — آل عمران: ٨"},{"text":"رب اشرح لي صدري ويسر لي أمري.","source":"من القرآن — طه: ٢٥–٢٦"},{"text":"لا حول ولا قوة إلا بالله.","source":"ذكر عظيم — متفق عليه"}],"actions":["ابدأ بعبادة صغيرة جدًا اليوم، ولا تنتظر عودة الحماس.","حافظ على الفرض القادم في أول وقته، ثم اقرأ صفحة واحدة فقط.","ثبّت وردًا لا يتجاوز خمس دقائق لمدة أسبوع كامل.","نم مبكرًا الليلة وخفف المشتتات؛ إرهاق الجسد يزيد الفتور.","ابتعد يومًا عن المقارنات التي تشعرك بالتقصير والعجز.","اختر رفيقًا صالحًا يذكرك من غير ضغط أو لوم.","لا تفتح عشرة أبواب عبادة مرة واحدة؛ اختر بابًا واحدًا وثبته.","غيّر مكان عبادتك أو وقت وردك إن أصبح الروتين سببًا للشرود.","اقرأ سيرة نبي أو صحابي لعشر دقائق بدل التصفح العشوائي.","إذا فاتك ورد اليوم، عُد في اليوم نفسه ولو بنصفه ولا تنتظر الغد.","أغلق الهاتف أثناء الصلاة والورد، ولو لعشر دقائق فقط.","راجع ذنبًا متكررًا قد يطفئ قلبك، وخذ سببًا عمليًا لتركه."]},"angry":{"label":"غاضب","icon":"🌋","verses":[{"title":"اكظم غيظك","text":"وَالْكَاظِمِينَ الْغَيْظَ وَالْعَافِينَ عَنِ النَّاسِ","source":"آل عمران: ١٣٤"},{"title":"ادفع بالأحسن","text":"ادْفَعْ بِالَّتِي هِيَ أَحْسَنُ","source":"فصلت: ٣٤"},{"title":"خذ العفو","text":"خُذِ الْعَفْوَ وَأْمُرْ بِالْعُرْفِ وَأَعْرِضْ عَنِ الْجَاهِلِينَ","source":"الأعراف: ١٩٩"},{"title":"الصبر والغفران","text":"وَلَمَنْ صَبَرَ وَغَفَرَ إِنَّ ذَلِكَ لَمِنْ عَزْمِ الْأُمُورِ","source":"الشورى: ٤٣"},{"title":"يغفرون عند الغضب","text":"وَإِذَا مَا غَضِبُوا هُمْ يَغْفِرُونَ","source":"الشورى: ٣٧"},{"title":"الحسنة أقوى","text":"وَلَا تَسْتَوِي الْحَسَنَةُ وَلَا السَّيِّئَةُ","source":"فصلت: ٣٤"},{"title":"العفو والإصلاح","text":"فَمَنْ عَفَا وَأَصْلَحَ فَأَجْرُهُ عَلَى اللَّهِ","source":"الشورى: ٤٠"},{"title":"قول حسن","text":"وَقُولُوا لِلنَّاسِ حُسْنًا","source":"البقرة: ٨٣"},{"title":"الكلمة الأحسن","text":"وَقُلْ لِعِبَادِي يَقُولُوا الَّتِي هِيَ أَحْسَنُ","source":"الإسراء: ٥٣"},{"title":"العفو أقرب للتقوى","text":"وَأَنْ تَعْفُوا أَقْرَبُ لِلتَّقْوَى","source":"البقرة: ٢٣٧"}],"hadiths":[{"text":"قال رجل للنبي ﷺ: أوصني. قال: لا تغضب. فردد مرارًا، قال: لا تغضب.","source":"رواه البخاري"},{"text":"ليس الشديد بالصرعة، إنما الشديد الذي يملك نفسه عند الغضب.","source":"متفق عليه"},{"text":"إني لأعلم كلمة لو قالها لذهب عنه ما يجد: أعوذ بالله من الشيطان الرجيم.","source":"متفق عليه"},{"text":"إن الرفق لا يكون في شيء إلا زانه، ولا ينزع من شيء إلا شانه.","source":"رواه مسلم"},{"text":"ما زاد الله عبدًا بعفو إلا عزًا.","source":"رواه مسلم"},{"text":"من كظم غيظًا وهو قادر على أن ينفذه دعاه الله على رؤوس الخلائق حتى يخيره من الحور العين ما شاء.","source":"رواه أبو داود والترمذي وحسنه أهل العلم"}],"duas":[{"text":"أعوذ بالله من الشيطان الرجيم.","source":"ذكر مشروع عند الغضب"},{"text":"اللهم اهدني لأحسن الأخلاق، لا يهدي لأحسنها إلا أنت، واصرف عني سيئها.","source":"من دعاء النبي ﷺ — رواه مسلم"},{"text":"رب اغفر لي وارحمني واهدني.","source":"دعاء جامع"},{"text":"اللهم أصلح قلبي ولساني، وألهمني الرشد في قولي وفعلي.","source":"دعاء عام بمعنى صحيح"},{"text":"اللهم طهر قلبي من الغل، وارزقني العفو والرفق.","source":"دعاء عام بمعنى صحيح"},{"text":"ربنا اغفر لنا ولإخواننا الذين سبقونا بالإيمان ولا تجعل في قلوبنا غلًا للذين آمنوا.","source":"من القرآن — الحشر: ١٠"}],"actions":["توقف عن الكلام دقيقة كاملة، ولا ترسل أي رسالة الآن.","غيّر مكانك، وتوضأ، وأجّل القرار حتى يهدأ جسدك.","اكتب ما تريد قوله، ثم احذف العبارات الجارحة قبل الإرسال.","اسأل نفسك: هل هدفي الإصلاح أم الانتصار للنفس؟","ضع حدًا واضحًا بأدب من غير سب أو تهديد أو ظلم.","إن أخطأت أثناء الغضب، بادر بالاعتذار ولا تبرر الإساءة.","ابتعد عشر دقائق عن الشخص أو النقاش قبل أن تكمل الحوار.","اخفض صوتك عمدًا؛ خفض الصوت يساعدك على كسر اندفاع الغضب.","لا تتخذ قرار طلاق أو قطيعة أو استقالة أو عقوبة وأنت في ذروة الانفعال.","تذكر حسنة واحدة للشخص الذي غضبت منه قبل أن تحكم عليه كله.","إن كان لك حق، اطلبه بوضوح بعد الهدوء بدل الانتقام.","نم على الأمر إن أمكن، وراجع قرارك في اليوم التالي بعقل أهدأ."]},"lonely":{"label":"أشعر بالوحدة","icon":"🌙","verses":[{"title":"أقرب من حبل الوريد","text":"وَنَحْنُ أَقْرَبُ إِلَيْهِ مِنْ حَبْلِ الْوَرِيدِ","source":"ق: ١٦"},{"title":"إني قريب","text":"فَإِنِّي قَرِيبٌ أُجِيبُ دَعْوَةَ الدَّاعِ إِذَا دَعَانِ","source":"البقرة: ١٨٦"},{"title":"معكم أينما كنتم","text":"وَهُوَ مَعَكُمْ أَيْنَ مَا كُنْتُمْ","source":"الحديد: ٤"},{"title":"ما ودعك ربك","text":"مَا وَدَّعَكَ رَبُّكَ وَمَا قَلَى","source":"الضحى: ٣"},{"title":"الله كافٍ عبده","text":"أَلَيْسَ اللَّهُ بِكَافٍ عَبْدَهُ","source":"الزمر: ٣٦"},{"title":"وليي الله","text":"إِنَّ وَلِيِّيَ اللَّهُ الَّذِي نَزَّلَ الْكِتَابَ وَهُوَ يَتَوَلَّى الصَّالِحِينَ","source":"الأعراف: ١٩٦"},{"title":"الله ولي المؤمنين","text":"اللَّهُ وَلِيُّ الَّذِينَ آمَنُوا","source":"البقرة: ٢٥٧"},{"title":"ربي سيهدين","text":"كَلَّا إِنَّ مَعِيَ رَبِّي سَيَهْدِينِ","source":"الشعراء: ٦٢"},{"title":"الله معنا","text":"لَا تَحْزَنْ إِنَّ اللَّهَ مَعَنَا","source":"التوبة: ٤٠"},{"title":"حسبك الله","text":"حَسْبُكَ اللَّهُ وَمَنِ اتَّبَعَكَ مِنَ الْمُؤْمِنِينَ","source":"الأنفال: ٦٤"}],"hadiths":[{"text":"المؤمن للمؤمن كالبنيان يشد بعضه بعضًا.","source":"متفق عليه"},{"text":"مثل المؤمنين في توادهم وتراحمهم وتعاطفهم مثل الجسد؛ إذا اشتكى منه عضو تداعى له سائر الجسد بالسهر والحمى.","source":"رواه مسلم"},{"text":"لا يؤمن أحدكم حتى يحب لأخيه ما يحب لنفسه.","source":"متفق عليه"},{"text":"المرء مع من أحب.","source":"متفق عليه"},{"text":"من نفّس عن مؤمن كربة من كرب الدنيا نفّس الله عنه كربة من كرب يوم القيامة.","source":"رواه مسلم"},{"text":"أنا عند ظن عبدي بي، وأنا معه إذا ذكرني.","source":"متفق عليه"}],"duas":[{"text":"اللهم رحمتك أرجو، فلا تكلني إلى نفسي طرفة عين، وأصلح لي شأني كله، لا إله إلا أنت.","source":"رواه أبو داود"},{"text":"يا حي يا قيوم، برحمتك أستغيث، أصلح لي شأني كله.","source":"دعاء مأثور"},{"text":"رب إني لما أنزلت إلي من خير فقير.","source":"من القرآن — القصص: ٢٤"},{"text":"حسبي الله لا إله إلا هو، عليه توكلت وهو رب العرش العظيم.","source":"من القرآن — التوبة: ١٢٩"},{"text":"لا إله إلا أنت سبحانك إني كنت من الظالمين.","source":"من القرآن — الأنبياء: ٨٧"},{"text":"ربنا أفرغ علينا صبرًا وثبت أقدامنا.","source":"من القرآن — البقرة: ٢٥٠"}],"actions":["تواصل اليوم مع شخص صالح أو قريب تثق به، ولو برسالة قصيرة.","اخرج إلى مكان آمن فيه ناس، ولا تبق طويلًا وحدك مع الأفكار الثقيلة.","صلِّ ركعتين، ثم اكتب دعاءك كما هو من غير تكلّف.","شارك في عمل نافع أو خدمة بسيطة؛ العطاء يفتح أبواب الأنس.","رتّب موعدًا أسبوعيًا ثابتًا مع أهل أو صديق صالح.","إن كانت الوحدة مؤلمة ومستمرّة، اطلب مساعدة مختص موثوق ولا تتردد.","لا تنتظر أن يبادر الجميع؛ أرسل أنت السلام لشخص تحبه اليوم.","احضر درسًا أو نشاطًا نافعًا في مسجد أو مجتمع آمن لتوسيع دائرة الصحبة.","أغلق المقارنة في مواقع التواصل لساعات؛ كثرة المقارنة قد تزيد شعور العزلة.","اتصل بأحد والديك أو أقاربك واسأل عنه بصدق.","اجعل لك عملًا تطوعيًا دوريًا يربطك بالناس على معنى نافع.","إذا شعرت أنك غير مرغوب فيك، لا تجعل شعورًا عابرًا حكمًا نهائيًا على قيمتك."]},"steady":{"label":"أريد الثبات","icon":"⛰️","verses":[{"title":"لا تزغ قلوبنا","text":"رَبَّنَا لَا تُزِغْ قُلُوبَنَا بَعْدَ إِذْ هَدَيْتَنَا","source":"آل عمران: ٨"},{"title":"استقم","text":"فَاسْتَقِمْ كَمَا أُمِرْتَ","source":"هود: ١١٢"},{"title":"استقاموا","text":"إِنَّ الَّذِينَ قَالُوا رَبُّنَا اللَّهُ ثُمَّ اسْتَقَامُوا","source":"فصلت: ٣٠"},{"title":"يثبت الله","text":"يُثَبِّتُ اللَّهُ الَّذِينَ آمَنُوا بِالْقَوْلِ الثَّابِتِ","source":"إبراهيم: ٢٧"},{"title":"زادهم هدى","text":"وَالَّذِينَ اهْتَدَوْا زَادَهُمْ هُدًى وَآتَاهُمْ تَقْوَاهُمْ","source":"محمد: ١٧"},{"title":"جاهد تُهدَ","text":"وَالَّذِينَ جَاهَدُوا فِينَا لَنَهْدِيَنَّهُمْ سُبُلَنَا","source":"العنكبوت: ٦٩"},{"title":"اصبروا ورابطوا","text":"يَا أَيُّهَا الَّذِينَ آمَنُوا اصْبِرُوا وَصَابِرُوا وَرَابِطُوا","source":"آل عمران: ٢٠٠"},{"title":"حتى يأتيك اليقين","text":"وَاعْبُدْ رَبَّكَ حَتَّى يَأْتِيَكَ الْيَقِينُ","source":"الحجر: ٩٩"},{"title":"اذكروني","text":"فَاذْكُرُونِي أَذْكُرْكُمْ","source":"البقرة: ١٥٢"},{"title":"الصلاة موقوتة","text":"إِنَّ الصَّلَاةَ كَانَتْ عَلَى الْمُؤْمِنِينَ كِتَابًا مَوْقُوتًا","source":"النساء: ١٠٣"}],"hadiths":[{"text":"قل: آمنت بالله، ثم استقم.","source":"رواه مسلم"},{"text":"أحب الأعمال إلى الله أدومها وإن قل.","source":"متفق عليه"},{"text":"كان رسول الله ﷺ يكثر أن يقول: يا مقلب القلوب، ثبت قلبي على دينك.","source":"رواه الترمذي"},{"text":"إن قلوب بني آدم كلها بين إصبعين من أصابع الرحمن كقلب واحد يصرفه حيث يشاء.","source":"رواه مسلم"},{"text":"بادروا بالأعمال فتناً كقطع الليل المظلم.","source":"رواه مسلم"},{"text":"المؤمن القوي خير وأحب إلى الله من المؤمن الضعيف، وفي كل خير.","source":"رواه مسلم"}],"duas":[{"text":"يا مقلب القلوب، ثبت قلبي على دينك.","source":"رواه الترمذي"},{"text":"اللهم مصرف القلوب، صرف قلبي على طاعتك.","source":"رواه مسلم"},{"text":"ربنا لا تزغ قلوبنا بعد إذ هديتنا وهب لنا من لدنك رحمة، إنك أنت الوهاب.","source":"من القرآن — آل عمران: ٨"},{"text":"اللهم أعني على ذكرك وشكرك وحسن عبادتك.","source":"رواه أبو داود والنسائي"},{"text":"ربنا أفرغ علينا صبرًا وثبت أقدامنا.","source":"من القرآن — البقرة: ٢٥٠"},{"text":"اهدنا الصراط المستقيم.","source":"من القرآن — الفاتحة: ٦"}],"actions":["ثبّت عبادة واحدة في وقت معلوم لمدة سبعة أيام.","اربط العبادة بعادة ثابتة، مثل الذكر بعد الصلاة أو القراءة قبل النوم.","لا تغيّر خطتك كل يوم؛ القليل المستمر أقوى من الاندفاع المؤقت.","اختر رفيقًا صالحًا تراجعه مرة كل أسبوع في تقدمك.","أغلق بابًا واحدًا من أبواب الفتنة قبل أن تختبر قوة ثباتك.","إذا فاتك يوم، عُد في اليوم التالي فورًا ولا تنتظر بداية جديدة.","اجعل لك وردًا صغيرًا لا يسقط حتى في الأيام الصعبة.","راقب أكثر وقت تضعف فيه، وجهّز له بديلًا صالحًا قبل أن يأتي.","لا تتوسع في النوافل على حساب الفرائض؛ ابدأ بما أوجبه الله.","راجع تقدمك أسبوعيًا لا كل ساعة؛ الثبات يُبنى على المدى الطويل.","احذف عادة واحدة تسحب وقتك من الطاعة من غير فائدة حقيقية.","ادعُ بالثبات بعد كل صلاة، ثم خذ سببًا عمليًا يحفظ قلبك."]},"grateful":{"label":"أريد شكر الله","icon":"🌤️","verses":[{"title":"لأزيدنكم","text":"لَئِنْ شَكَرْتُمْ لَأَزِيدَنَّكُمْ","source":"إبراهيم: ٧"},{"title":"اشكروا لي","text":"فَاذْكُرُونِي أَذْكُرْكُمْ وَاشْكُرُوا لِي وَلَا تَكْفُرُونِ","source":"البقرة: ١٥٢"},{"title":"حدث بالنعمة","text":"وَأَمَّا بِنِعْمَةِ رَبِّكَ فَحَدِّثْ","source":"الضحى: ١١"},{"title":"كلوا واشكروا","text":"كُلُوا مِنْ رِزْقِ رَبِّكُمْ وَاشْكُرُوا لَهُ","source":"سبأ: ١٥"},{"title":"اعملوا شكرًا","text":"اعْمَلُوا آلَ دَاوُودَ شُكْرًا","source":"سبأ: ١٣"},{"title":"قليل من عبادي الشكور","text":"وَقَلِيلٌ مِنْ عِبَادِيَ الشَّكُورُ","source":"سبأ: ١٣"},{"title":"لا تحصوها","text":"وَإِنْ تَعُدُّوا نِعْمَةَ اللَّهِ لَا تُحْصُوهَا","source":"إبراهيم: ٣٤"},{"title":"النعمة من الله","text":"وَمَا بِكُمْ مِنْ نِعْمَةٍ فَمِنَ اللَّهِ","source":"النحل: ٥٣"},{"title":"الحمد لله","text":"الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ","source":"الفاتحة: ٢"},{"title":"كن من الشاكرين","text":"بَلِ اللَّهَ فَاعْبُدْ وَكُنْ مِنَ الشَّاكِرِينَ","source":"الزمر: ٦٦"}],"hadiths":[{"text":"كان النبي ﷺ يقوم من الليل حتى تتفطر قدماه، فقيل له في ذلك، فقال: أفلا أكون عبدًا شكورًا؟","source":"متفق عليه"},{"text":"من لا يشكر الناس لا يشكر الله.","source":"رواه أبو داود والترمذي وصححه"},{"text":"إن الله ليرضى عن العبد أن يأكل الأكلة فيحمده عليها، أو يشرب الشربة فيحمده عليها.","source":"رواه مسلم"},{"text":"الحمد لله تملأ الميزان.","source":"رواه مسلم"},{"text":"عجبًا لأمر المؤمن، إن أمره كله له خير؛ إن أصابته سراء شكر فكان خيرًا له.","source":"رواه مسلم"},{"text":"من صنع إليكم معروفًا فكافئوه، فإن لم تجدوا ما تكافئونه فادعوا له حتى تروا أنكم قد كافأتموه.","source":"رواه أبو داود والنسائي وصححه أهل العلم"}],"duas":[{"text":"اللهم أعني على ذكرك وشكرك وحسن عبادتك.","source":"رواه أبو داود والنسائي"},{"text":"رب أوزعني أن أشكر نعمتك التي أنعمت علي وعلى والدي وأن أعمل صالحًا ترضاه.","source":"من القرآن — النمل: ١٩"},{"text":"الحمد لله حمدًا كثيرًا طيبًا مباركًا فيه.","source":"ذكر ثابت في السنة"},{"text":"الحمد لله رب العالمين.","source":"من القرآن — الفاتحة: ٢"},{"text":"رب أوزعني أن أشكر نعمتك التي أنعمت علي وعلى والدي وأن أعمل صالحًا ترضاه وأصلح لي في ذريتي.","source":"من القرآن — الأحقاف: ١٥"},{"text":"اللهم لك الحمد على نعمك الظاهرة والباطنة، وارزقني حسن استعمالها في رضاك.","source":"دعاء عام بمعنى صحيح"}],"actions":["اكتب ثلاث نعم محددة، ولا تكتفِ بكلمة عامة.","اشكر إنسانًا كان سببًا في خير وصل إليك.","استعمل نعمة واحدة اليوم في طاعة أو نفع شخص آخر.","تصدق ولو بالقليل شكرًا لله على ما أعطاك.","توقف دقيقة عن الشكوى، واذكر ما بقي معك من الخير.","احفظ النعمة من المعصية؛ فالشكر عمل كما هو قول.","صوّر في ذهنك نعمة اعتدت وجودها، ثم احمد الله عليها بوعي.","قدّم خدمة لأهلك اليوم من غير انتظار شكر منهم.","اكتب نعمة دينية ونعمة دنيوية ونعمة في شخص تحبه.","إذا مدحك أحد على نعمة، انسب الفضل لله من غير تصنع.","لا تقارن نعمك بنعم غيرك اليوم؛ انظر لما أعطاك الله أنت.","اختم يومك بحمد الله على موقف واحد صعب وموقف واحد جميل."]},"prayer":{"label":"أريد أن أنتظم في صلاتي","icon":"🕌","verses":[{"title":"أقم الصلاة لذكري","text":"وَأَقِمِ الصَّلَاةَ لِذِكْرِي","source":"طه: ١٤"},{"title":"الصلاة موقوتة","text":"إِنَّ الصَّلَاةَ كَانَتْ عَلَى الْمُؤْمِنِينَ كِتَابًا مَوْقُوتًا","source":"النساء: ١٠٣"},{"title":"حافظوا على الصلوات","text":"حَافِظُوا عَلَى الصَّلَوَاتِ وَالصَّلَاةِ الْوُسْطَى","source":"البقرة: ٢٣٨"},{"title":"الخشوع في الصلاة","text":"قَدْ أَفْلَحَ الْمُؤْمِنُونَ ۝ الَّذِينَ هُمْ فِي صَلَاتِهِمْ خَاشِعُونَ","source":"المؤمنون: ١–٢"},{"title":"استعينوا بالصلاة","text":"وَاسْتَعِينُوا بِالصَّبْرِ وَالصَّلَاةِ","source":"البقرة: ٤٥"},{"title":"مع الصابرين","text":"اسْتَعِينُوا بِالصَّبْرِ وَالصَّلَاةِ إِنَّ اللَّهَ مَعَ الصَّابِرِينَ","source":"البقرة: ١٥٣"},{"title":"أقم الصلاة لدلوك الشمس","text":"أَقِمِ الصَّلَاةَ لِدُلُوكِ الشَّمْسِ إِلَى غَسَقِ اللَّيْلِ وَقُرْآنَ الْفَجْرِ","source":"الإسراء: ٧٨"},{"title":"تنهى عن الفحشاء","text":"إِنَّ الصَّلَاةَ تَنْهَى عَنِ الْفَحْشَاءِ وَالْمُنْكَرِ","source":"العنكبوت: ٤٥"},{"title":"على صلاتهم يحافظون","text":"وَالَّذِينَ هُمْ عَلَى صَلَاتِهِمْ يُحَافِظُونَ","source":"المعارج: ٣٤"},{"title":"لا تكن ممن أضاعها","text":"فَخَلَفَ مِنْ بَعْدِهِمْ خَلْفٌ أَضَاعُوا الصَّلَاةَ وَاتَّبَعُوا الشَّهَوَاتِ","source":"مريم: ٥٩"}],"hadiths":[{"text":"سئل النبي ﷺ: أي العمل أحب إلى الله؟ قال: الصلاة على وقتها.","source":"متفق عليه"},{"text":"أرأيتم لو أن نهرًا بباب أحدكم يغتسل منه كل يوم خمس مرات، هل يبقى من درنه شيء؟ ... فذلك مثل الصلوات الخمس يمحو الله بهن الخطايا.","source":"متفق عليه"},{"text":"بين الرجل وبين الشرك والكفر ترك الصلاة.","source":"رواه مسلم"},{"text":"العهد الذي بيننا وبينهم الصلاة، فمن تركها فقد كفر.","source":"رواه الترمذي والنسائي وابن ماجه وصححه أهل العلم"},{"text":"أقرب ما يكون العبد من ربه وهو ساجد، فأكثروا الدعاء.","source":"رواه مسلم"},{"text":"من صلى البردين دخل الجنة.","source":"متفق عليه"}],"duas":[{"text":"اللهم أعني على ذكرك وشكرك وحسن عبادتك.","source":"رواه أبو داود والنسائي"},{"text":"رب اجعلني مقيم الصلاة ومن ذريتي ربنا وتقبل دعاء.","source":"من القرآن — إبراهيم: ٤٠"},{"text":"اهدنا الصراط المستقيم.","source":"من القرآن — الفاتحة: ٦"},{"text":"يا مقلب القلوب، ثبت قلبي على دينك.","source":"رواه الترمذي"},{"text":"اللهم مصرف القلوب، صرف قلبي على طاعتك.","source":"رواه مسلم"},{"text":"اللهم إني أعوذ بك من قلب لا يخشع، ومن دعاء لا يسمع.","source":"من دعاء النبي ﷺ — رواه مسلم"}],"actions":["ابدأ بالصلاة القادمة فقط: توضأ قبل وقتها بخمس دقائق واجلس مستعدًا.","فعّل منبهات الصلوات، واجعل اسم المنبه: قم للصلاة الآن.","اربط كل صلاة بعادة ثابتة: الفجر بعد الاستيقاظ، والظهر قبل الغداء، والعشاء قبل النوم.","لا تقل سأنتظم من الغد؛ صلِّ الفرض الحالي في وقته ثم ابنِ عليه.","جهّز سجادة الصلاة في مكان ظاهر لا داخل خزانة.","عندما يؤذن، لا تفتح تطبيقًا جديدًا ولا تبدأ مهمة جديدة قبل الصلاة.","إن فاتتك صلاة، لا تجعلها سببًا لترك باقي اليوم؛ عد فورًا للصلاة التالية.","اختر شخصًا تثق به واتفقا على تذكير بسيط بالصلاة لمدة أسبوع.","نم مبكرًا واضبط أكثر من منبه للفجر، وضع الهاتف بعيدًا عن السرير.","تعلم معنى الأذكار التي تقولها في الصلاة؛ الفهم يساعد على الحضور والخشوع.","صلِّ في المسجد متى تيسر لك ذلك وكان مناسبًا وآمنًا؛ الجماعة تعين على الانتظام.","ضع علامة ✅ بعد كل فرض في يومك، وهدفك الأول أسبوع كامل لا الكمال من أول يوم."]}};
+  const INDEX_KEY='zad_heart_remedy_index_v62';
+  const STEP=37; // أولي مع 120، فيمر على كل التركيبات قبل التكرار.
+  const indexes=(()=>{try{const x=JSON.parse(localStorage.getItem(INDEX_KEY)||'{}');return x&&typeof x==='object'?x:{}}catch(e){return {}}})();
+
+  function todayKey(){
+    const d=new Date();
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  }
+  function hash(value){
+    let h=2166136261;
+    for(const ch of String(value)){h^=ch.charCodeAt(0);h=Math.imul(h,16777619)}
+    return Math.abs(h>>>0);
+  }
+  function save(){try{localStorage.setItem(INDEX_KEY,JSON.stringify(indexes))}catch(e){}}
+  function buildMessages(id){
+    const g=HEART_PLUS_LIBRARY[id]; if(!g)return [];
+    const out=[];
+    g.verses.forEach((verse,vi)=>{
+      g.actions.forEach((action,ai)=>{
+        const hadith=g.hadiths[(vi*3+ai)%g.hadiths.length];
+        const dua=g.duas[(vi+ai*2)%g.duas.length];
+        out.push({
+          icon:g.icon,label:g.label,title:verse.title,
+          verse:verse.text,source:verse.source,
+          hadith:hadith.text,hadithSource:hadith.source,
+          dua:dua.text,duaSource:dua.source,
+          action
+        });
+      });
+    });
+    return out;
+  }
+  const lists=Object.fromEntries(Object.keys(HEART_PLUS_LIBRARY).map(id=>[id,buildMessages(id)]));
+
+  function currentIndex(id){
+    const list=lists[id]||[]; if(!list.length)return 0;
+    const day=todayKey();
+    if(!indexes[id]||indexes[id].day!==day){
+      indexes[id]={day,index:hash(id+'|'+day)%list.length};
+      save();
+    }
+    return Number(indexes[id].index||0)%list.length;
+  }
+  function setIndex(id,index){
+    const list=lists[id]||[]; if(!list.length)return;
+    indexes[id]={day:todayKey(),index:((index%list.length)+list.length)%list.length};
+    save();
+  }
+  function getMessage(id){const list=lists[id]||[];return list[currentIndex(id)]||null}
+
+  function renderGrid(){
+    const grid=document.getElementById('heartMoodGrid'); if(!grid)return;
+    grid.innerHTML=Object.entries(HEART_PLUS_LIBRARY).map(([id,g])=>
+      `<button id="heartMood-${id}" onclick="heartChooseMood('${id}')">${g.icon} ${g.label}</button>`
+    ).join('');
+  }
+
+  function render(id){
+    const r=getMessage(id),result=document.getElementById('heartRemedyResult');
+    if(!r||!result)return;
+    const x=window.scrollX,y=window.scrollY;
+    document.querySelectorAll('#heartMoodGrid button').forEach(b=>b.classList.remove('active'));
+    document.getElementById('heartMood-'+id)?.classList.add('active');
+    result.innerHTML=
+      `<h3>${r.icon} ${r.label}</h3>`+
+      `<div class="heartActionBox"><b>آية من القرآن:</b><div class="verse" style="margin-top:8px">${r.verse}</div><div class="status" style="text-align:center;margin-top:5px">${r.source}</div></div>`+
+      `<div class="heartActionBox"><b>حديث نبوي:</b><br>${r.hadith}<div class="status" style="margin-top:5px">${r.hadithSource}</div></div>`+
+      `<div class="heartActionBox"><b>الدعاء أو الذكر:</b><br>${r.dua}<div class="status" style="margin-top:5px">${r.duaSource}</div></div>`+
+      `<div class="heartActionBox"><b>افعل الآن:</b><br>${r.action}</div>`+
+      `<div class="row" style="margin-top:11px"><button onclick="heartAnotherRemedy('${id}')">رسالة أخرى</button><button class="secondary" onclick="heartCopyRemedy('${id}')">نسخ التذكرة</button></div>`;
+    requestAnimationFrame(()=>window.scrollTo({left:x,top:y,behavior:'auto'}));
+  }
+
+  window.heartChooseMood=function(id){
+    if(!lists[id])return;
+    render(id);
+  };
+  window.heartAnotherRemedy=function(id){
+    const list=lists[id]||[]; if(!list.length)return;
+    setIndex(id,currentIndex(id)+STEP);
+    render(id);
+  };
+  window.heartCopyRemedy=function(id){
+    const r=getMessage(id); if(!r)return;
+    const text=`${r.label}
+
+آية من القرآن:
+${r.verse} (${r.source})
+
+حديث نبوي:
+${r.hadith}
+${r.hadithSource}
+
+الدعاء أو الذكر:
+${r.dua}
+${r.duaSource}
+
+افعل الآن:
+${r.action}`;
+    if(navigator.clipboard?.writeText){
+      navigator.clipboard.writeText(text).then(()=>{
+        if(typeof window.showHeartToast==='function')window.showHeartToast('تم نسخ تذكرة القلب');
+      }).catch(()=>fallbackCopy(text));
+    }else fallbackCopy(text);
+  };
+  function fallbackCopy(text){
+    const area=document.createElement('textarea');
+    area.value=text;area.style.position='fixed';area.style.opacity='0';
+    document.body.appendChild(area);area.select();
+    try{document.execCommand('copy')}catch(e){}
+    area.remove();
+  }
+
+  const previousHeartShowPage=window.heartShowPage;
+  if(typeof previousHeartShowPage==='function'){
+    window.heartShowPage=function(name){
+      const out=previousHeartShowPage.apply(this,arguments);
+      if(name==='remedy')requestAnimationFrame(renderGrid);
+      return out;
+    };
+  }
+
+  function init(){
+    renderGrid();
+    document.documentElement.setAttribute('data-heart-remedy-count','120');
+    document.documentElement.setAttribute('data-heart-remedy-categories','9');
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});
+  else init();
+})();
+</script>
+<!-- /ZAD_V62_HEART_EXPANDED_CONTENT -->
+
 </body>
 </html>
