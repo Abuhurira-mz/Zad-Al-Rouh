@@ -12901,10 +12901,8 @@ html[data-reader-size="large"]{--reader-heart-daily-verse:38px}
 
 <style id="zad-header-divider-v1">
 .zadHeaderDivider{
+  display:none;
   position:absolute;
-  top:120px;
-  left:14px;
-  right:14px;
   z-index:2;
   height:1px;
   pointer-events:none;
@@ -12918,24 +12916,30 @@ html[data-reader-size="large"]{--reader-heart-daily-verse:38px}
   );
 }
 
-@media(max-width:370px){
-  .zadHeaderDivider{
-    top:116px;
-    left:12px;
-    right:12px;
+@media(max-width:700px){
+  .zadTopControls{
+    left:24px!important;
+    right:24px!important;
+    width:auto!important;
+  }
+
+  .zadTopControls #zadPointsChip{
+    top:0!important;
+    right:0!important;
+    left:auto!important;
   }
 }
 
-@media(min-width:701px) and (max-width:899px){
-  .zadHeaderDivider{
-    top:128px;
-    left:18px;
-    right:18px;
+@media(max-width:370px){
+  .zadTopControls{
+    left:18px!important;
+    right:18px!important;
   }
 }
 
 @media(min-width:900px){
   html[data-device-mode="desktop"] .zadHeaderDivider{
+    display:block;
     top:116px;
     left:18px;
     right:18px;
