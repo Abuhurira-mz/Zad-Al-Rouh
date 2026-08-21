@@ -2161,15 +2161,26 @@ let ztHasMore=true;
 let ztObserver=null;
 
 async function ztEdge(name,body){
+  const headers={'apikey':ZT_KEY,'content-type':'application/json'};
+  try{
+    const session=await window.zadSupabase?.auth?.getSession?.();
+    const token=session?.data?.session?.access_token;
+    if(token)headers.authorization='Bearer '+token;
+  }catch(_){}
   const r=await fetch(ZT_FN+name,{
     method:'POST',
-    headers:{'apikey':ZT_KEY,'content-type':'application/json'},
+    headers,
     body:JSON.stringify(body||{})
   });
   const text=await r.text();
   let data={};
   try{data=text?JSON.parse(text):{}}catch(_){}
-  if(!r.ok)throw new Error(data.message||data.error||'تعذر الاتصال بزاد توك.');
+  if(!r.ok){
+    const err=new Error(data.message||data.error||'تعذر الاتصال بزاد توك.');
+    err.code=data.error||'request_failed';
+    err.status=r.status;
+    throw err;
+  }
   return data;
 }
 
@@ -2232,9 +2243,207 @@ function ztAddClip(item){
   sub.textContent=parts.join(' • ')||'تمت مراجعته واعتماده قبل النشر';
   overlay.appendChild(sub);
 
-  article.append(video,overlay);
+  const actions=document.createElement('div');
+  actions.className='zadTalkActions';
+  actions.innerHTML=`
+    <button type="button" class="zadTalkAction zadTalkLike" aria-label="إعجاب"><span class="zadTalkActionIcon">♡</span><b data-count="like">0</b><small>إعجاب</small></button>
+    <button type="button" class="zadTalkAction zadTalkCommentBtn" aria-label="التعليقات"><span class="zadTalkActionIcon">💬</span><b data-count="comment">0</b><small>تعليق</small></button>
+    <button type="button" class="zadTalkAction zadTalkShare" aria-label="مشاركة"><span class="zadTalkActionIcon">↗</span><b data-count="share">0</b><small>مشاركة</small></button>`;
+
+  const comments=document.createElement('section');
+  comments.className='zadTalkComments hidden';
+  comments.innerHTML=`
+    <div class="zadTalkCommentsHead"><strong>التعليقات</strong><button type="button" class="zadTalkCommentsClose" aria-label="إغلاق التعليقات">✕</button></div>
+    <div class="zadTalkCommentsList"><div class="zadTalkCommentsState">جارٍ تحميل التعليقات…</div></div>
+    <div class="zadTalkCommentComposer">
+      <textarea maxlength="500" rows="2" placeholder="اكتب تعليقك..."></textarea>
+      <div class="zadTalkCommentComposerRow">
+        <button type="button" class="zadTalkCommentSend">إرسال التعليق</button>
+        <button type="button" class="zadTalkCommentLogin hidden">تسجيل الدخول للتعليق</button>
+        <small class="zadTalkCommentStatus"></small>
+      </div>
+    </div>`;
+
+  article.append(video,overlay,actions,comments);
   shell.appendChild(article);
+
+  actions.querySelector('.zadTalkLike')?.addEventListener('click',()=>ztToggleLike(article));
+  actions.querySelector('.zadTalkCommentBtn')?.addEventListener('click',()=>ztToggleComments(article));
+  actions.querySelector('.zadTalkShare')?.addEventListener('click',()=>ztShareClip(article,item));
+  comments.querySelector('.zadTalkCommentsClose')?.addEventListener('click',()=>comments.classList.add('hidden'));
+  comments.querySelector('.zadTalkCommentSend')?.addEventListener('click',()=>ztSendComment(article));
+  comments.querySelector('.zadTalkCommentLogin')?.addEventListener('click',()=>window.zadOpenAuth?.());
+
+  ztLoadSocialStats(article);
 }
+
+function ztSetCount(article,key,value){
+  const el=article?.querySelector(`[data-count="${key}"]`);
+  if(el)el.textContent=Number(value||0).toLocaleString('ar-EG');
+}
+
+async function ztGetLoggedUser(){
+  try{
+    const x=await window.zadSupabase?.auth?.getSession?.();
+    return x?.data?.session?.user||null;
+  }catch(_){return null}
+}
+
+async function ztLoadSocialStats(article){
+  const id=article?.dataset?.id;if(!id)return;
+  try{
+    const data=await ztEdge('zad-talk-social',{action:'stats',id});
+    ztSetCount(article,'like',data.like_count);
+    ztSetCount(article,'comment',data.comment_count);
+    ztSetCount(article,'share',data.share_count);
+    const like=article.querySelector('.zadTalkLike');
+    like?.classList.toggle('active',!!data.liked);
+    const icon=like?.querySelector('.zadTalkActionIcon');
+    if(icon)icon.textContent=data.liked?'♥':'♡';
+  }catch(err){
+    console.error('Zad Talk social stats:',err);
+  }
+}
+
+async function ztToggleLike(article){
+  const id=article?.dataset?.id;if(!id)return;
+  const btn=article.querySelector('.zadTalkLike');
+  if(btn)btn.disabled=true;
+  try{
+    const data=await ztEdge('zad-talk-social',{action:'like',id});
+    ztSetCount(article,'like',data.like_count);
+    btn?.classList.toggle('active',!!data.liked);
+    const icon=btn?.querySelector('.zadTalkActionIcon');
+    if(icon)icon.textContent=data.liked?'♥':'♡';
+  }catch(err){
+    console.error('Zad Talk like:',err);
+  }finally{
+    if(btn)btn.disabled=false;
+  }
+}
+
+function ztRenderComments(article,comments){
+  const list=article.querySelector('.zadTalkCommentsList');if(!list)return;
+  list.textContent='';
+  if(!comments?.length){
+    const empty=document.createElement('div');
+    empty.className='zadTalkCommentsState';
+    empty.textContent='لا توجد تعليقات بعد. كن أول من يعلّق.';
+    list.appendChild(empty);
+    return;
+  }
+  comments.forEach(c=>{
+    const row=document.createElement('div');
+    row.className='zadTalkComment';
+    const head=document.createElement('div');
+    head.className='zadTalkCommentHead';
+    const name=document.createElement('strong');
+    name.textContent=ztEscText(c.username)||'مستخدم زاد الإسلام';
+    const time=document.createElement('small');
+    try{time.textContent=new Intl.DateTimeFormat('ar-EG',{dateStyle:'medium',timeStyle:'short'}).format(new Date(c.created_at))}catch(_){}
+    head.append(name,time);
+    const body=document.createElement('p');
+    body.textContent=ztEscText(c.body);
+    row.append(head,body);
+    list.appendChild(row);
+  });
+}
+
+async function ztRefreshCommentComposer(article){
+  const user=await ztGetLoggedUser();
+  const send=article.querySelector('.zadTalkCommentSend');
+  const login=article.querySelector('.zadTalkCommentLogin');
+  const area=article.querySelector('.zadTalkCommentComposer textarea');
+  send?.classList.toggle('hidden',!user);
+  login?.classList.toggle('hidden',!!user);
+  if(area){
+    area.disabled=!user;
+    area.placeholder=user?'اكتب تعليقك...':'سجّل الدخول أولًا لإضافة تعليق';
+  }
+}
+
+async function ztToggleComments(article){
+  const panel=article?.querySelector('.zadTalkComments');if(!panel)return;
+  const opening=panel.classList.contains('hidden');
+  panel.classList.toggle('hidden',!opening);
+  if(!opening)return;
+  await ztRefreshCommentComposer(article);
+  const list=article.querySelector('.zadTalkCommentsList');
+  if(list)list.innerHTML='<div class="zadTalkCommentsState">جارٍ تحميل التعليقات…</div>';
+  try{
+    const data=await ztEdge('zad-talk-social',{action:'comments',id:article.dataset.id});
+    ztRenderComments(article,data.comments||[]);
+  }catch(err){
+    if(list)list.innerHTML='<div class="zadTalkCommentsState bad">تعذر تحميل التعليقات الآن.</div>';
+  }
+}
+
+async function ztSendComment(article){
+  const user=await ztGetLoggedUser();
+  const status=article.querySelector('.zadTalkCommentStatus');
+  if(!user){
+    if(status)status.textContent='سجّل الدخول أولًا لإضافة تعليق.';
+    window.zadOpenAuth?.();
+    return;
+  }
+  const area=article.querySelector('.zadTalkCommentComposer textarea');
+  const text=ztEscText(area?.value);
+  if(!text){
+    if(status)status.textContent='اكتب التعليق أولًا.';
+    return;
+  }
+  const btn=article.querySelector('.zadTalkCommentSend');
+  if(btn)btn.disabled=true;
+  if(status)status.textContent='جارٍ إرسال التعليق...';
+  try{
+    const data=await ztEdge('zad-talk-social',{action:'comment',id:article.dataset.id,comment:text});
+    if(area)area.value='';
+    ztSetCount(article,'comment',data.comment_count);
+    if(status)status.textContent='تم نشر تعليقك.';
+    const listData=await ztEdge('zad-talk-social',{action:'comments',id:article.dataset.id});
+    ztRenderComments(article,listData.comments||[]);
+  }catch(err){
+    if(err?.code==='login_required'){
+      if(status)status.textContent='سجّل الدخول أولًا لإضافة تعليق.';
+      window.zadOpenAuth?.();
+    }else if(status){
+      status.textContent=err?.message||'تعذر إرسال التعليق.';
+    }
+  }finally{
+    if(btn)btn.disabled=false;
+  }
+}
+
+async function ztShareClip(article,item){
+  const btn=article?.querySelector('.zadTalkShare');
+  if(btn)btn.disabled=true;
+  const title=ztEscText(item?.title)||'مقطع من زاد توك';
+  const url=location.href.split('#')[0];
+  let shared=false;
+  try{
+    if(navigator.share){
+      await navigator.share({title,text:'شاهد هذا المقطع على زاد الإسلام',url});
+      shared=true;
+    }else if(navigator.clipboard?.writeText){
+      await navigator.clipboard.writeText(url);
+      shared=true;
+      btn?.classList.add('copied');
+      const sm=btn?.querySelector('small');if(sm){const old=sm.textContent;sm.textContent='تم النسخ';setTimeout(()=>sm.textContent=old,1400)}
+    }else{
+      window.prompt('انسخ رابط المشاركة:',url);
+      shared=true;
+    }
+    if(shared){
+      const data=await ztEdge('zad-talk-social',{action:'share',id:article.dataset.id});
+      ztSetCount(article,'share',data.share_count);
+    }
+  }catch(err){
+    if(err?.name!=='AbortError')console.error('Zad Talk share:',err);
+  }finally{
+    if(btn)btn.disabled=false;
+  }
+}
+
 
 async function ztLoadFeed(reset){
   if(ztLoading)return;
@@ -2391,5 +2600,77 @@ setTimeout(()=>{
 window.zadTalkRefresh=function(){return ztLoadFeed(true)};
 })();
 </script>
+
+
+<style id="zad-talk-social-ui-v1">
+.zadTalkActions{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:8px;
+  padding:10px 10px 11px;
+  border-top:1px solid var(--line);
+  background:color-mix(in srgb,var(--card) 94%,transparent);
+}
+.zadTalkAction{
+  min-height:48px;
+  display:grid;
+  grid-template-columns:auto auto;
+  grid-template-rows:auto auto;
+  align-items:center;
+  justify-content:center;
+  column-gap:6px;
+  row-gap:0;
+  padding:6px 10px!important;
+  border-radius:13px!important;
+  background:var(--card2)!important;
+  border:1px solid var(--line)!important;
+  color:var(--text)!important;
+}
+.zadTalkActionIcon{grid-row:1/3;font-size:21px;line-height:1}
+.zadTalkAction b{font-size:13px;line-height:1.15}
+.zadTalkAction small{font-size:10px;color:var(--muted);line-height:1.15}
+.zadTalkLike.active{
+  background:color-mix(in srgb,#d95f72 22%,var(--card2))!important;
+  border-color:color-mix(in srgb,#ff8ca0 45%,var(--line))!important;
+}
+.zadTalkLike.active .zadTalkActionIcon{color:#ff8499}
+.zadTalkComments{
+  border-top:1px solid var(--line);
+  background:var(--card);
+  padding:11px;
+}
+.zadTalkCommentsHead{
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+  margin-bottom:9px;
+}
+.zadTalkCommentsHead strong{font-size:15px}
+.zadTalkCommentsClose{
+  width:34px;height:34px;min-height:34px;padding:0!important;border-radius:10px!important;
+  background:var(--card2)!important;color:var(--text)!important;border:1px solid var(--line)!important;
+}
+.zadTalkCommentsList{display:grid;gap:8px;max-height:330px;overflow:auto}
+.zadTalkCommentsState{padding:11px;text-align:center;color:var(--muted);font-size:12px;line-height:1.8}
+.zadTalkComment{padding:10px 11px;border:1px solid var(--line);border-radius:13px;background:var(--card2)}
+.zadTalkCommentHead{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.zadTalkCommentHead strong{font-size:12px;color:var(--gold)}
+.zadTalkCommentHead small{font-size:9px;color:var(--muted)}
+.zadTalkComment p{margin:6px 0 0;font-size:13px;line-height:1.8;color:var(--text);white-space:pre-wrap;overflow-wrap:anywhere}
+.zadTalkCommentComposer{margin-top:10px;padding-top:10px;border-top:1px solid var(--line)}
+.zadTalkCommentComposer textarea{
+  width:100%;resize:vertical;min-height:68px;max-height:150px;
+  border:1px solid var(--line);background:#071d14;color:var(--text);
+  border-radius:13px;padding:10px 11px;font:inherit;outline:none;
+}
+.zadTalkCommentComposerRow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:7px}
+.zadTalkCommentSend,.zadTalkCommentLogin{min-height:40px;padding:8px 12px!important}
+.zadTalkCommentStatus{flex:1;min-width:130px;color:var(--muted);font-size:11px;line-height:1.6}
+@media(max-width:700px){
+  .zadTalkActions{gap:6px;padding:8px}
+  .zadTalkAction{min-height:46px;padding:5px 7px!important}
+  .zadTalkActionIcon{font-size:19px}
+  .zadTalkAction small{font-size:9px}
+  .zadTalkComments{padding:9px}
+}
+</style>
 
 </body></html>
