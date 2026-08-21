@@ -2272,7 +2272,7 @@ function ztAddClip(item){
   actions.querySelector('.zadTalkShare')?.addEventListener('click',()=>ztShareClip(article,item));
   comments.querySelector('.zadTalkCommentsClose')?.addEventListener('click',()=>comments.classList.add('hidden'));
   comments.querySelector('.zadTalkCommentSend')?.addEventListener('click',()=>ztSendComment(article));
-  comments.querySelector('.zadTalkCommentLogin')?.addEventListener('click',()=>window.zadOpenAuth?.());
+  comments.querySelector('.zadTalkCommentLogin')?.addEventListener('click',()=>{if(typeof window.zadOpenAuth==='function')window.zadOpenAuth();else if(typeof window.zadMyPanelOpen==='function')window.zadMyPanelOpen('auth');});
 
   ztLoadSocialStats(article);
 }
@@ -2383,7 +2383,7 @@ async function ztSendComment(article){
   const status=article.querySelector('.zadTalkCommentStatus');
   if(!user){
     if(status)status.textContent='سجّل الدخول أولًا لإضافة تعليق.';
-    window.zadOpenAuth?.();
+    if(typeof window.zadOpenAuth==='function')window.zadOpenAuth();else if(typeof window.zadMyPanelOpen==='function')window.zadMyPanelOpen('auth');
     return;
   }
   const area=article.querySelector('.zadTalkCommentComposer textarea');
@@ -2405,7 +2405,7 @@ async function ztSendComment(article){
   }catch(err){
     if(err?.code==='login_required'){
       if(status)status.textContent='سجّل الدخول أولًا لإضافة تعليق.';
-      window.zadOpenAuth?.();
+      if(typeof window.zadOpenAuth==='function')window.zadOpenAuth();else if(typeof window.zadMyPanelOpen==='function')window.zadMyPanelOpen('auth');
     }else if(status){
       status.textContent=err?.message||'تعذر إرسال التعليق.';
     }
@@ -2672,5 +2672,34 @@ window.zadTalkRefresh=function(){return ztLoadFeed(true)};
   .zadTalkComments{padding:9px}
 }
 </style>
+
+
+<script id="zad-talk-social-render-safety">
+(function(){
+'use strict';
+let refreshed=false;
+function ensure(){
+  const feed=document.getElementById('zadTalkFeed');
+  if(!feed)return;
+  const clips=[...feed.querySelectorAll('.zadTalkClip')];
+  if(!clips.length)return;
+  const missing=clips.some(c=>!c.querySelector('.zadTalkActions'));
+  if(missing && !refreshed && typeof window.zadTalkRefresh==='function'){
+    refreshed=true;
+    window.zadTalkRefresh();
+  }
+}
+if(document.readyState==='loading'){
+  document.addEventListener('DOMContentLoaded',()=>setTimeout(ensure,350),{once:true});
+}else{
+  setTimeout(ensure,350);
+}
+document.addEventListener('click',e=>{
+  if(e.target.closest?.('[data-v21-media-tab="watch"],[data-v21-view="media"]')){
+    setTimeout(ensure,450);
+  }
+},true);
+})();
+</script>
 
 </body></html>
