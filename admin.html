@@ -1,0 +1,404 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://bzrhrvgddtnhctcdlgmy.supabase.co; img-src 'self' data: https:; media-src 'self' blob: https:; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline';">
+<title>لوحة إدارة زاد الإسلام</title>
+<style>
+:root{
+  --bg:#091a13;--panel:#10251b;--panel2:#153126;--line:rgba(255,255,255,.11);
+  --text:#f7f4ea;--muted:#b9c6bf;--gold:#e5c56f;--green:#24a66d;--red:#d95f5f;
+  --shadow:0 18px 50px rgba(0,0,0,.28);
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font-family:Tahoma,Arial,sans-serif}
+button,input,textarea,select{font:inherit}
+button{cursor:pointer}
+.hidden{display:none!important}
+.shell{min-height:100vh;padding:20px}
+.wrap{max-width:1180px;margin:auto}
+.brand{display:flex;align-items:center;gap:12px;margin-bottom:18px}
+.logo{width:44px;height:44px;border-radius:14px;display:grid;place-items:center;background:var(--panel2);border:1px solid var(--line);font-size:25px}
+.brand h1{margin:0;font-size:24px;color:var(--gold)}
+.brand p{margin:4px 0 0;color:var(--muted);font-size:13px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:20px;box-shadow:var(--shadow)}
+.login{max-width:460px;margin:8vh auto 0;padding:24px}
+.login h2{margin:0 0 8px;font-size:24px}
+.login .note{color:var(--muted);line-height:1.8;margin-bottom:18px}
+.field{margin:12px 0}
+.field label{display:block;margin-bottom:7px;font-size:13px;color:var(--muted)}
+.field input,.field textarea{width:100%;border:1px solid var(--line);border-radius:13px;padding:12px 13px;background:#0b1d15;color:var(--text);outline:none}
+.field input:focus,.field textarea:focus{border-color:var(--gold)}
+.primary{width:100%;border:0;border-radius:13px;padding:12px 15px;background:var(--green);color:white;font-weight:800}
+.msg{min-height:24px;margin-top:10px;font-size:13px;color:var(--muted)}
+.msg.error{color:#ff9a9a}
+.topbar{display:flex;align-items:center;gap:12px;justify-content:space-between;margin-bottom:16px}
+.adminName{color:var(--muted);font-size:13px}
+.logout{border:1px solid var(--line);background:var(--panel2);color:var(--text);padding:9px 12px;border-radius:11px}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:15px}
+.tab{border:1px solid var(--line);background:var(--panel);color:var(--muted);padding:9px 13px;border-radius:12px;font-weight:700}
+.tab.active{background:var(--gold);color:#221b08;border-color:transparent}
+.statusline{color:var(--muted);font-size:13px;margin:0 0 12px}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.item{padding:16px}
+.itemHead{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.item h3{margin:0;font-size:18px;color:var(--gold)}
+.badge{font-size:11px;border:1px solid var(--line);padding:5px 8px;border-radius:999px;color:var(--muted);white-space:nowrap}
+.meta{margin:9px 0;color:var(--muted);font-size:12px;line-height:1.8}
+.desc{white-space:pre-wrap;line-height:1.8;font-size:14px;margin:10px 0}
+.preview{margin:12px 0;border-radius:14px;overflow:hidden;background:#050505;border:1px solid var(--line)}
+.preview video,.preview img,.preview iframe{width:100%;display:block;border:0;max-height:440px}
+.fileLink{display:block;padding:12px;color:var(--gold);text-decoration:none;overflow-wrap:anywhere}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.actions button{border:0;border-radius:11px;padding:9px 12px;font-weight:800}
+.approve{background:var(--green);color:white}
+.reject{background:#765223;color:white}
+.delete{background:var(--red);color:white}
+.reason{margin-top:10px}
+.reason textarea{width:100%;min-height:72px;resize:vertical;border:1px solid var(--line);background:#0b1d15;color:var(--text);border-radius:12px;padding:10px}
+.empty{padding:34px;text-align:center;color:var(--muted)}
+.loader{padding:24px;text-align:center;color:var(--muted)}
+@media(max-width:760px){
+  .shell{padding:12px}
+  .grid{grid-template-columns:1fr}
+  .brand h1{font-size:21px}
+  .topbar{align-items:flex-start}
+  .actions button{flex:1}
+}
+</style>
+</head>
+<body>
+<div class="shell">
+  <div class="wrap">
+    <header class="brand">
+      <div class="logo">☪</div>
+      <div>
+        <h1>لوحة إدارة زاد الإسلام</h1>
+        <p>مراجعة محتوى زاد توك قبل النشر</p>
+      </div>
+    </header>
+
+    <section id="loginBox" class="card login">
+      <h2>دخول الأدمن</h2>
+      <div class="note">هذه الصفحة للإدارة فقط. المحتوى المرفوع لا يُنشر للعامة إلا بعد المراجعة والقبول.</div>
+      <form id="loginForm" autocomplete="on">
+        <div class="field">
+          <label for="username">اسم المستخدم</label>
+          <input id="username" name="username" autocomplete="username" required>
+        </div>
+        <div class="field">
+          <label for="password">كلمة المرور</label>
+          <input id="password" name="password" type="password" autocomplete="current-password" required>
+        </div>
+        <button class="primary" type="submit">دخول لوحة الإدارة</button>
+        <div id="loginMsg" class="msg" aria-live="polite"></div>
+      </form>
+    </section>
+
+    <main id="dashboard" class="hidden">
+      <div class="topbar">
+        <div>
+          <strong>زاد توك — المراجعة</strong>
+          <div id="adminName" class="adminName"></div>
+        </div>
+        <button id="logoutBtn" class="logout">تسجيل الخروج</button>
+      </div>
+
+      <nav class="tabs" aria-label="حالة المحتوى">
+        <button class="tab active" data-status="pending">قيد المراجعة</button>
+        <button class="tab" data-status="approved">المقبول</button>
+        <button class="tab" data-status="rejected">المرفوض</button>
+        <button class="tab" data-status="all">الكل</button>
+      </nav>
+
+      <p id="statusLine" class="statusline"></p>
+      <div id="contentGrid" class="grid"></div>
+    </main>
+  </div>
+</div>
+
+<script>
+'use strict';
+
+const SB_URL = 'https://bzrhrvgddtnhctcdlgmy.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ6cmhydmdkZHRuaGN0Y2RsZ215Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ5MDg1ODAsImV4cCI6MjEwMDQ4NDU4MH0.MUeCViAthzh1jUdZWdtoiOqC7J1bdAHRxRfLAMJFqto';
+const TOKEN_KEY = 'zad_admin_session_v1';
+
+const loginBox = document.getElementById('loginBox');
+const dashboard = document.getElementById('dashboard');
+const loginForm = document.getElementById('loginForm');
+const loginMsg = document.getElementById('loginMsg');
+const grid = document.getElementById('contentGrid');
+const statusLine = document.getElementById('statusLine');
+const adminName = document.getElementById('adminName');
+let sessionToken = sessionStorage.getItem(TOKEN_KEY) || '';
+let currentStatus = 'pending';
+
+async function rpc(name, body) {
+  const r = await fetch(`${SB_URL}/rest/v1/rpc/${name}`, {
+    method: 'POST',
+    headers: {
+      'apikey': SB_KEY,
+      'authorization': `Bearer ${SB_KEY}`,
+      'content-type': 'application/json'
+    },
+    body: JSON.stringify(body || {})
+  });
+  const text = await r.text();
+  let data = null;
+  try { data = text ? JSON.parse(text) : null; } catch (_) {}
+  if (!r.ok) {
+    const err = new Error((data && data.message) || 'تعذر الاتصال بالخادم.');
+    err.status = r.status;
+    throw err;
+  }
+  return data;
+}
+
+function showLogin(message='', isError=false) {
+  dashboard.classList.add('hidden');
+  loginBox.classList.remove('hidden');
+  loginMsg.textContent = message;
+  loginMsg.classList.toggle('error', !!isError);
+}
+
+function showDashboard(displayName='') {
+  loginBox.classList.add('hidden');
+  dashboard.classList.remove('hidden');
+  adminName.textContent = displayName ? `مرحبًا، ${displayName}` : 'جلسة إدارة نشطة';
+}
+
+loginForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  loginMsg.textContent = 'جارٍ التحقق...';
+  loginMsg.classList.remove('error');
+  const username = document.getElementById('username').value.trim();
+  const password = document.getElementById('password').value;
+  try {
+    const data = await rpc('zad_admin_login', {p_username:username,p_password:password,p_ip:null});
+    const row = Array.isArray(data) ? data[0] : data;
+    if (!row || !row.ok || !row.session_token) {
+      loginMsg.textContent = (row && row.message) || 'تعذر تسجيل الدخول.';
+      loginMsg.classList.add('error');
+      return;
+    }
+    sessionToken = row.session_token;
+    sessionStorage.setItem(TOKEN_KEY, sessionToken);
+    document.getElementById('password').value = '';
+    showDashboard(row.admin_display_name || username);
+    await loadSubmissions('pending');
+  } catch (err) {
+    loginMsg.textContent = err.message || 'حدث خطأ.';
+    loginMsg.classList.add('error');
+  }
+});
+
+document.getElementById('logoutBtn').addEventListener('click', async () => {
+  const token = sessionToken;
+  sessionToken = '';
+  sessionStorage.removeItem(TOKEN_KEY);
+  try { if (token) await rpc('zad_admin_logout', {p_token:token}); } catch (_) {}
+  grid.textContent = '';
+  showLogin('تم تسجيل الخروج.');
+});
+
+document.querySelectorAll('.tab').forEach(btn => {
+  btn.addEventListener('click', () => loadSubmissions(btn.dataset.status || 'pending'));
+});
+
+function formatBytes(n) {
+  if (!Number.isFinite(Number(n))) return '';
+  n = Number(n);
+  const u = ['B','KB','MB','GB'];
+  let i = 0;
+  while (n >= 1024 && i < u.length-1) { n /= 1024; i++; }
+  return `${n.toFixed(i ? 1 : 0)} ${u[i]}`;
+}
+
+function safeDate(v) {
+  if (!v) return '';
+  try { return new Intl.DateTimeFormat('ar-EG', {dateStyle:'medium',timeStyle:'short'}).format(new Date(v)); }
+  catch (_) { return String(v); }
+}
+
+function youtubeEmbed(url) {
+  try {
+    const u = new URL(url);
+    let id = '';
+    if (u.hostname.includes('youtu.be')) id = u.pathname.slice(1);
+    if (u.hostname.includes('youtube.com')) id = u.searchParams.get('v') || '';
+    return /^[A-Za-z0-9_-]{6,}$/.test(id) ? `https://www.youtube-nocookie.com/embed/${id}` : '';
+  } catch (_) { return ''; }
+}
+
+function makePreview(item) {
+  const url = item.media_url || '';
+  if (!url) return null;
+  const box = document.createElement('div');
+  box.className = 'preview';
+
+  const yt = youtubeEmbed(url);
+  if (yt) {
+    const f = document.createElement('iframe');
+    f.src = yt;
+    f.loading = 'lazy';
+    f.referrerPolicy = 'strict-origin-when-cross-origin';
+    f.allow = 'accelerometer; autoplay; encrypted-media; picture-in-picture';
+    f.allowFullscreen = true;
+    box.appendChild(f);
+    return box;
+  }
+
+  if (item.media_kind === 'video') {
+    const v = document.createElement('video');
+    v.src = url; v.controls = true; v.preload = 'metadata';
+    box.appendChild(v); return box;
+  }
+  if (item.media_kind === 'audio') {
+    const a = document.createElement('audio');
+    a.src = url; a.controls = true; a.preload = 'metadata';
+    a.style.width = '100%'; a.style.padding = '12px';
+    box.appendChild(a); return box;
+  }
+  if (item.media_kind === 'image') {
+    const im = document.createElement('img');
+    im.src = url; im.alt = item.title || 'صورة مرفوعة'; im.loading = 'lazy';
+    box.appendChild(im); return box;
+  }
+
+  const a = document.createElement('a');
+  a.className = 'fileLink';
+  a.href = url; a.target = '_blank'; a.rel = 'noopener noreferrer';
+  a.textContent = 'فتح الملف / الرابط للمراجعة ↗';
+  box.appendChild(a);
+  return box;
+}
+
+function createItemCard(item) {
+  const card = document.createElement('article');
+  card.className = 'card item';
+
+  const head = document.createElement('div');
+  head.className = 'itemHead';
+  const h = document.createElement('h3');
+  h.textContent = item.title || 'بدون عنوان';
+  const badge = document.createElement('span');
+  badge.className = 'badge';
+  badge.textContent = item.status || 'pending';
+  head.append(h,badge);
+  card.appendChild(head);
+
+  const meta = document.createElement('div');
+  meta.className = 'meta';
+  const bits = [];
+  if (item.submitter_name) bits.push(`المرسل: ${item.submitter_name}`);
+  if (item.original_file_name) bits.push(`الملف: ${item.original_file_name}`);
+  if (item.file_size) bits.push(`الحجم: ${formatBytes(item.file_size)}`);
+  if (item.created_at) bits.push(`الرفع: ${safeDate(item.created_at)}`);
+  meta.textContent = bits.join(' • ') || 'لا توجد بيانات إضافية.';
+  card.appendChild(meta);
+
+  if (item.description) {
+    const d = document.createElement('div');
+    d.className = 'desc';
+    d.textContent = item.description;
+    card.appendChild(d);
+  }
+
+  const preview = makePreview(item);
+  if (preview) card.appendChild(preview);
+
+  if (item.rejection_reason) {
+    const r = document.createElement('div');
+    r.className = 'meta';
+    r.textContent = `سبب الرفض: ${item.rejection_reason}`;
+    card.appendChild(r);
+  }
+
+  const reason = document.createElement('div');
+  reason.className = 'reason';
+  const ta = document.createElement('textarea');
+  ta.placeholder = 'سبب الرفض (اختياري)';
+  reason.appendChild(ta);
+  card.appendChild(reason);
+
+  const actions = document.createElement('div');
+  actions.className = 'actions';
+
+  const approve = document.createElement('button');
+  approve.className = 'approve';
+  approve.textContent = '✓ قبول ونشر';
+  approve.addEventListener('click', () => review(item.id,'approve',''));
+
+  const reject = document.createElement('button');
+  reject.className = 'reject';
+  reject.textContent = '✕ رفض';
+  reject.addEventListener('click', () => review(item.id,'reject',ta.value));
+
+  const del = document.createElement('button');
+  del.className = 'delete';
+  del.textContent = 'حذف';
+  del.addEventListener('click', () => {
+    if (confirm('حذف هذا العنصر نهائيًا من سجل زاد توك؟')) review(item.id,'delete','');
+  });
+
+  actions.append(approve,reject,del);
+  card.appendChild(actions);
+  return card;
+}
+
+async function loadSubmissions(status) {
+  if (!sessionToken) return showLogin();
+  currentStatus = status || 'pending';
+  document.querySelectorAll('.tab').forEach(b => b.classList.toggle('active', b.dataset.status === currentStatus));
+  grid.innerHTML = '<div class="card loader">جارٍ تحميل المحتوى...</div>';
+  statusLine.textContent = '';
+  try {
+    const data = await rpc('zad_admin_list_submissions', {p_token:sessionToken,p_status:currentStatus});
+    const rows = Array.isArray(data) ? data : [];
+    grid.textContent = '';
+    statusLine.textContent = `عدد العناصر: ${rows.length}`;
+    if (!rows.length) {
+      const empty = document.createElement('div');
+      empty.className = 'card empty';
+      empty.textContent = currentStatus === 'pending' ? 'لا يوجد محتوى في انتظار المراجعة حاليًا.' : 'لا توجد عناصر في هذا القسم.';
+      grid.appendChild(empty);
+      return;
+    }
+    rows.forEach(x => grid.appendChild(createItemCard(x)));
+  } catch (err) {
+    sessionToken = '';
+    sessionStorage.removeItem(TOKEN_KEY);
+    showLogin('انتهت الجلسة أو تعذر التحقق منها. سجّل الدخول مرة أخرى.', true);
+  }
+}
+
+async function review(id, action, reason) {
+  if (!sessionToken) return showLogin();
+  try {
+    statusLine.textContent = 'جارٍ تنفيذ القرار...';
+    await rpc('zad_admin_review_submission', {
+      p_token:sessionToken,
+      p_id:id,
+      p_action:action,
+      p_reason:reason || null
+    });
+    await loadSubmissions(currentStatus);
+  } catch (err) {
+    alert(err.message || 'تعذر تنفيذ القرار.');
+    statusLine.textContent = '';
+  }
+}
+
+if (sessionToken) {
+  showDashboard();
+  loadSubmissions('pending');
+} else {
+  showLogin();
+}
+</script>
+</body>
+</html>
