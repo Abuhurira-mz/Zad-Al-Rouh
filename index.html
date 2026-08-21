@@ -2702,4 +2702,195 @@ document.addEventListener('click',e=>{
 })();
 </script>
 
+
+<style id="zad-talk-video-style-final">
+/* ==========================================================
+   Zad Talk — video card exactly as a portrait reel.
+   Keep the current feed/data; only make social controls visible
+   INSIDE the video instead of being clipped below it.
+   ========================================================== */
+
+.zadTalkFeedShell{
+  width:min(100%,460px)!important;
+  margin:0 auto!important;
+  display:grid!important;
+  gap:16px!important;
+}
+
+.zadTalkClip{
+  position:relative!important;
+  width:100%!important;
+  aspect-ratio:9 / 16!important;
+  max-height:min(78vh,780px)!important;
+  overflow:hidden!important;
+  border-radius:26px!important;
+  background:#000!important;
+  border:1px solid rgba(255,255,255,.12)!important;
+  box-shadow:0 16px 42px rgba(0,0,0,.28)!important;
+  isolation:isolate!important;
+}
+
+.zadTalkClip video{
+  position:absolute!important;
+  inset:0!important;
+  width:100%!important;
+  height:100%!important;
+  display:block!important;
+  object-fit:contain!important;
+  object-position:center!important;
+  background:#000!important;
+  z-index:1!important;
+}
+
+/* Title/date directly over the video like the screenshot — no big box. */
+.zadTalkClipOverlay{
+  position:absolute!important;
+  right:16px!important;
+  left:86px!important;
+  bottom:40px!important;
+  z-index:4!important;
+  padding:8px 0!important;
+  border-radius:0!important;
+  background:linear-gradient(90deg,transparent,rgba(0,0,0,.20) 30%,rgba(0,0,0,.58))!important;
+  color:#fff!important;
+  text-align:right!important;
+  pointer-events:none!important;
+}
+.zadTalkClipOverlay strong{
+  display:block!important;
+  font-size:14px!important;
+  font-weight:800!important;
+  line-height:1.45!important;
+  text-shadow:0 1px 3px rgba(0,0,0,.9)!important;
+}
+.zadTalkClipOverlay small{
+  display:block!important;
+  margin-top:2px!important;
+  color:#fff!important;
+  font-size:10px!important;
+  line-height:1.4!important;
+  text-shadow:0 1px 3px rgba(0,0,0,.95)!important;
+}
+
+/* Likes / comments / share now float INSIDE the reel. */
+.zadTalkActions{
+  position:absolute!important;
+  left:12px!important;
+  right:auto!important;
+  bottom:52px!important;
+  z-index:7!important;
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:center!important;
+  gap:9px!important;
+  width:auto!important;
+  padding:0!important;
+  border:0!important;
+  background:transparent!important;
+  pointer-events:auto!important;
+}
+
+.zadTalkAction{
+  width:50px!important;
+  min-width:50px!important;
+  height:50px!important;
+  min-height:50px!important;
+  padding:4px!important;
+  display:grid!important;
+  grid-template-columns:1fr!important;
+  grid-template-rows:auto auto!important;
+  place-items:center!important;
+  gap:1px!important;
+  border-radius:50%!important;
+  background:rgba(12,12,12,.62)!important;
+  border:1px solid rgba(255,255,255,.18)!important;
+  color:#fff!important;
+  box-shadow:0 5px 16px rgba(0,0,0,.30)!important;
+  -webkit-backdrop-filter:none!important;
+  backdrop-filter:none!important;
+}
+.zadTalkActionIcon{
+  grid-row:auto!important;
+  font-size:21px!important;
+  line-height:1!important;
+}
+.zadTalkAction b{
+  font-size:10px!important;
+  line-height:1!important;
+  color:#fff!important;
+}
+.zadTalkAction small{
+  display:none!important;
+}
+.zadTalkLike.active{
+  background:rgba(120,20,38,.78)!important;
+  border-color:rgba(255,130,150,.55)!important;
+}
+.zadTalkLike.active .zadTalkActionIcon{color:#ff7f97!important}
+
+/* Comments appear as an in-video bottom sheet, not below/clipped. */
+.zadTalkComments{
+  position:absolute!important;
+  left:8px!important;
+  right:8px!important;
+  bottom:8px!important;
+  z-index:12!important;
+  max-height:58%!important;
+  overflow:hidden!important;
+  padding:11px!important;
+  border-radius:18px!important;
+  border:1px solid rgba(255,255,255,.15)!important;
+  background:rgba(8,19,15,.97)!important;
+  box-shadow:0 -10px 34px rgba(0,0,0,.36)!important;
+}
+.zadTalkComments.hidden{display:none!important}
+.zadTalkCommentsList{
+  max-height:220px!important;
+  overflow-y:auto!important;
+}
+.zadTalkCommentComposer textarea{
+  background:#071d14!important;
+}
+
+/* Native video controls remain usable. */
+.zadTalkClip video::-webkit-media-controls{
+  z-index:20;
+}
+
+@media(max-width:700px){
+  .zadTalkFeedShell{
+    width:100%!important;
+    gap:12px!important;
+  }
+  .zadTalkClip{
+    width:min(100%,430px)!important;
+    min-height:0!important;
+    height:auto!important;
+    aspect-ratio:9/16!important;
+    max-height:calc(100dvh - 170px)!important;
+    margin:0 auto!important;
+    border-radius:22px!important;
+  }
+  .zadTalkActions{
+    left:9px!important;
+    bottom:50px!important;
+    gap:7px!important;
+  }
+  .zadTalkAction{
+    width:46px!important;
+    min-width:46px!important;
+    height:46px!important;
+    min-height:46px!important;
+  }
+  .zadTalkActionIcon{font-size:20px!important}
+  .zadTalkClipOverlay{
+    right:12px!important;
+    left:70px!important;
+    bottom:38px!important;
+  }
+  .zadTalkClipOverlay strong{font-size:13px!important}
+  .zadTalkClipOverlay small{font-size:9px!important}
+}
+</style>
+
 </body></html>
