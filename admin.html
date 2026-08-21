@@ -124,7 +124,7 @@ button{cursor:pointer}
 'use strict';
 
 const SB_URL = 'https://bzrhrvgddtnhctcdlgmy.supabase.co';
-const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ6cmhydmdkZHRuaGN0Y2RsZ215Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ5MDg1ODAsImV4cCI6MjEwMDQ4NDU4MH0.MUeCViAthzh1jUdZWdtoiOqC7J1bdAHRxRfLAMJFqto';
+const SB_KEY = 'sb_publishable_HzCPiZYRuFb3hm_duGCHVA_J020y2YL';
 const TOKEN_KEY = 'zad_admin_session_v1';
 
 const loginBox = document.getElementById('loginBox');
@@ -137,24 +137,16 @@ const adminName = document.getElementById('adminName');
 let sessionToken = sessionStorage.getItem(TOKEN_KEY) || '';
 let currentStatus = 'pending';
 
-async function rpc(name, body) {
-  const r = await fetch(`${SB_URL}/rest/v1/rpc/${name}`, {
-    method: 'POST',
-    headers: {
-      'apikey': SB_KEY,
-      'authorization': `Bearer ${SB_KEY}`,
-      'content-type': 'application/json'
-    },
-    body: JSON.stringify(body || {})
+async function edge(name, body) {
+  const r = await fetch(`${SB_URL}/functions/v1/${name}`, {
+    method:'POST',
+    headers:{'apikey':SB_KEY,'content-type':'application/json'},
+    body:JSON.stringify(body || {})
   });
-  const text = await r.text();
-  let data = null;
-  try { data = text ? JSON.parse(text) : null; } catch (_) {}
-  if (!r.ok) {
-    const err = new Error((data && data.message) || 'تعذر الاتصال بالخادم.');
-    err.status = r.status;
-    throw err;
-  }
+  const text=await r.text();
+  let data=null;
+  try { data=text?JSON.parse(text):null; } catch (_) {}
+  if(!r.ok) throw new Error((data&&data.message)||(data&&data.error)||'تعذر الاتصال بالخادم.');
   return data;
 }
 
@@ -178,8 +170,7 @@ loginForm.addEventListener('submit', async (e) => {
   const username = document.getElementById('username').value.trim();
   const password = document.getElementById('password').value;
   try {
-    const data = await rpc('zad_admin_login', {p_username:username,p_password:password,p_ip:null});
-    const row = Array.isArray(data) ? data[0] : data;
+    const row = await edge('zad-admin-auth', {action:'login',username,password});
     if (!row || !row.ok || !row.session_token) {
       loginMsg.textContent = (row && row.message) || 'تعذر تسجيل الدخول.';
       loginMsg.classList.add('error');
@@ -200,7 +191,7 @@ document.getElementById('logoutBtn').addEventListener('click', async () => {
   const token = sessionToken;
   sessionToken = '';
   sessionStorage.removeItem(TOKEN_KEY);
-  try { if (token) await rpc('zad_admin_logout', {p_token:token}); } catch (_) {}
+  try { if (token) await edge('zad-admin-auth', {action:'logout',token}); } catch (_) {}
   grid.textContent = '';
   showLogin('تم تسجيل الخروج.');
 });
@@ -357,8 +348,8 @@ async function loadSubmissions(status) {
   grid.innerHTML = '<div class="card loader">جارٍ تحميل المحتوى...</div>';
   statusLine.textContent = '';
   try {
-    const data = await rpc('zad_admin_list_submissions', {p_token:sessionToken,p_status:currentStatus});
-    const rows = Array.isArray(data) ? data : [];
+    const data = await edge('zad-talk-admin-list', {token:sessionToken,status:currentStatus});
+    const rows = Array.isArray(data?.items) ? data.items : [];
     grid.textContent = '';
     statusLine.textContent = `عدد العناصر: ${rows.length}`;
     if (!rows.length) {
@@ -380,11 +371,11 @@ async function review(id, action, reason) {
   if (!sessionToken) return showLogin();
   try {
     statusLine.textContent = 'جارٍ تنفيذ القرار...';
-    await rpc('zad_admin_review_submission', {
-      p_token:sessionToken,
-      p_id:id,
-      p_action:action,
-      p_reason:reason || null
+    await edge('zad-talk-admin-review', {
+      token:sessionToken,
+      id:id,
+      action:action,
+      reason:reason || null
     });
     await loadSubmissions(currentStatus);
   } catch (err) {
