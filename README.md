@@ -1,2 +1,3 @@
-# alwird-alyawmi
-برنامج الورد اليومي 
+# Zad-El-Islam
+زاد الاسلام
+
