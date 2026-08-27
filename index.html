@@ -2161,10 +2161,10 @@ let ztObserver=null;
 const ztRequestedId=(()=>{try{return new URLSearchParams(location.search).get('zad_talk')||''}catch(_){return ''}})();
 
 function ztDeepLink(id){
-  const canonical='https://abuhurira-mz.github.io/Zad-Al-Rouh/';
+  const canonical='https://zad-el-islam.github.io/Abh/';
   let base=canonical;
   try{
-    if(/^https?:$/i.test(location.protocol) && /abuhurira-mz\.github\.io$/i.test(location.hostname)){
+    if(/^https?:$/i.test(location.protocol) && /zad-el-islam\.github\.io$/i.test(location.hostname)){
       base=location.origin+location.pathname;
     }
   }catch(_){}
